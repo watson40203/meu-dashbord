@@ -33,8 +33,10 @@ jobs:
           TOKEN_CONVERSAS: ${{ secrets.TOKEN_CONVERSAS }}
         run: python dashboard_marketing.py
 
-      - name: Copiar logo para pasta de saida
-        run: cp logo.png dashboard_unificado.html . 2>/dev/null || true
+      - name: Criar index.html
+        run: |
+          cp dashboard_unificado.html index.html
+          cp logo.png logo.png 2>/dev/null || true
 
       - name: Publicar no GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
