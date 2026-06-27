@@ -147,7 +147,7 @@ def buscar_marketing():
                         break
                     for c in lote:
                         uuid_stage[c["uuid"]] = estagio
-                    if len(lote) < 100:
+                    if not lote:
                         break
                     pag += 1
                 except Exception:
@@ -171,7 +171,7 @@ def buscar_marketing():
                     break
                 todos_contatos.extend(lote)
                 print(f"  Página {pagina}: {len(lote)} contatos (total: {len(todos_contatos)})")
-                if len(lote) < 100:
+                if not lote:
                     break
                 pagina += 1
             except Exception as e:
@@ -209,7 +209,7 @@ def buscar_marketing():
                         break
                     lote = rc.json().get("contacts", [])
                     total_camp += len(lote)
-                    if len(lote) < 100:
+                    if not lote:
                         break
                     pag += 1
                 except Exception:
