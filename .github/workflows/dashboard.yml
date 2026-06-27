@@ -1,0 +1,38 @@
+name: Gerar Dashboard
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar arquivos do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install requests
+
+      - name: Gerar dashboard
+        env:
+          TOKEN_CRM: ${{ secrets.TOKEN_CRM }}
+          CLIENT_ID_MKT: ${{ secrets.CLIENT_ID_MKT }}
+          CLIENT_SECRET_MKT: ${{ secrets.CLIENT_SECRET_MKT }}
+          REFRESH_TOKEN_MKT: ${{ secrets.REFRESH_TOKEN_MKT }}
+          TOKEN_CONVERSAS: ${{ secrets.TOKEN_CONVERSAS }}
+        run: python dashboard_marketing.py
+
+      - name: Publicar no GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          include_files: dashboard_unificado.html,logo.png
