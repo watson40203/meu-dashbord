@@ -2,8 +2,8 @@ name: Gerar Dashboard
 
 on:
   schedule:
-    - cron: '0 */6 * * *'
-  workflow_dispatch:
+    - cron: '0 */6 * * *'   # Atualiza a cada 6 horas
+  workflow_dispatch:          # Botão para rodar manualmente
 
 permissions:
   contents: write
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar arquivos
+      - name: Baixar arquivos do repositório
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Instalar dependencias
+      - name: Instalar dependências
         run: pip install requests
 
       - name: Gerar dashboard
@@ -30,13 +30,13 @@ jobs:
           CLIENT_ID_MKT: ${{ secrets.CLIENT_ID_MKT }}
           CLIENT_SECRET_MKT: ${{ secrets.CLIENT_SECRET_MKT }}
           REFRESH_TOKEN_MKT: ${{ secrets.REFRESH_TOKEN_MKT }}
+          TOKEN_PUBLICO_MKT: ${{ secrets.TOKEN_PUBLICO_MKT }}
+          TOKEN_PRIVADO_MKT: ${{ secrets.TOKEN_PRIVADO_MKT }}
           TOKEN_CONVERSAS: ${{ secrets.TOKEN_CONVERSAS }}
-        run: python dashboard_marketing.py
+        run: python dashboard_github.py
 
-      - name: Criar index.html
-        run: |
-          cp dashboard_unificado.html index.html
-          cp logo.png logo.png 2>/dev/null || true
+      - name: Renomear para index.html
+        run: cp dashboard_unificado.html index.html
 
       - name: Publicar no GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
