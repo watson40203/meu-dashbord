@@ -5,12 +5,15 @@ on:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   gerar:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Baixar arquivos do repositorio
+      - name: Baixar arquivos
         uses: actions/checkout@v4
 
       - name: Configurar Python
@@ -30,9 +33,12 @@ jobs:
           TOKEN_CONVERSAS: ${{ secrets.TOKEN_CONVERSAS }}
         run: python dashboard_marketing.py
 
+      - name: Copiar logo para pasta de saida
+        run: cp logo.png dashboard_unificado.html . 2>/dev/null || true
+
       - name: Publicar no GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
-          include_files: dashboard_unificado.html,logo.png
+          keep_files: true
