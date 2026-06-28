@@ -855,24 +855,26 @@ function doRegister(){{
 }}
 
 function doLogin(){{
-  const em=$i("l-em").value.trim(), pw=$i("l-pw").value;
+  const em=$i("l-em").value.trim().toLowerCase();
+  const pw=$i("l-pw").value.trim();
   if(!em||!pw){{$i("l-err").textContent="Preencha e-mail e senha.";$i("l-err").style.display="block";return;}}
   $i("l-err").style.display="none";
 
-  // Admin: verifica e-mail E senha
-  const _APWD=atob("QWxhbmEwNTIxMzA=");
-  if(em===ADMIN_EMAIL){{
-    if(pw!==_APWD){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
+  // Admin
+  if(em===ADMIN_EMAIL.toLowerCase() && pw===atob("QWxhbmEwNTIxMzA=")){{
     loginAs({{id:"admin",name:"Watson Slonski",email:ADMIN_EMAIL,photo:"",status:"approved"}});
     return;
   }}
+  if(em===ADMIN_EMAIL.toLowerCase() && pw!==atob("QWxhbmEwNTIxMzA=")){{
+    $i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;
+  }}
 
-  // Usuários cadastrados: só entra se aprovado
+  // Usuários cadastrados
   const users=getUsers();
-  const u=users.find(x=>x.email===em);
-  if(!u){{$i("l-err").textContent="E-mail não cadastrado. Solicite acesso.";$i("l-err").style.display="block";return;}}
+  const u=users.find(x=>x.email.toLowerCase()===em);
+  if(!u){{$i("l-err").textContent="E-mail não cadastrado. Use Criar conta.";$i("l-err").style.display="block";return;}}
+  if(u.status!=="approved"){{$i("l-err").textContent="Acesso aguardando aprovação.";$i("l-err").style.display="block";return;}}
   if(u.pw && btoa(pw)!==u.pw){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
-  if(u.status!=="approved"){{$i("l-err").textContent="Acesso aguardando aprovação do administrador.";$i("l-err").style.display="block";return;}}
   loginAs(u);
 }}
 
