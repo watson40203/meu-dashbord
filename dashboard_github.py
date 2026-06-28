@@ -26,7 +26,8 @@ except ImportError:
     METAS_MENSAIS  = {}
 
 import base64 as _b64
-_ADMIN_PW_B64 = _b64.b64encode(ADMIN_PASSWORD.encode()).decode()
+_ADMIN_PW_B64   = _b64.b64encode(ADMIN_PASSWORD.encode()).decode()
+_ADMIN_PW_CODES = list(ADMIN_PASSWORD.encode())  # [65,108,97,110,97,48,53,50,49,51,48]
 
 LOGO_DISPLAY = "logo.png"     # navbar + login
 LOGO_FAVICON  = "logoapp.jpeg"  # só aba do navegador
@@ -887,7 +888,10 @@ function doLogin(){{
 
   // Admin — verifica e-mail e senha
   if(em===ADMIN_EMAIL.toLowerCase()){{
-    if(pw!==atob("{_ADMIN_PW_B64}")){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
+    // Reconstrói senha esperada via charCodes (evita texto claro e problemas com atob)
+    const _espW={_ADMIN_PW_CODES};
+    const _espS=_espW.map(c=>String.fromCharCode(c)).join("");
+    if(pw!==_espS){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
     loginAs({{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}});
     return;
   }}
