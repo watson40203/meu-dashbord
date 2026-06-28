@@ -535,7 +535,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
 <body>
 
 <!-- TELA DE AUTENTICAÇÃO -->
-<div id="auth-wrap">
+<div id="auth-wrap" style="display:none">
 <div class="acard">
   <div style="margin-bottom:18px">{logo_big}</div>
   <div class="atabs">
@@ -604,7 +604,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div class="mitem" id="ni-cal" onclick="ir('cal')">{ICO["cal"]}<span>Calendário</span></div>
     <div class="mdiv"></div>
     <div class="mitem" id="ni-perfil" onclick="ir('perfil')">{ICO["user"]}<span>Meu Perfil</span></div>
-    <div class="mitem" id="ni-cfg" onclick="ir('cfg')">{ICO["cfg"]}<span>Config (Admin)</span></div>
+    <div class="mitem" id="ni-cfg" onclick="ir('cfg')" style="display:flex">{ICO["cfg"]}<span>Config (Admin)</span></div>
     <div class="mdiv"></div>
     <div class="mitem" onclick="doLogout()" style="color:var(--rd)">{ICO["x"]}<span>Sair</span></div>
   </div>
