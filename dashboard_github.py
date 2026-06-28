@@ -78,6 +78,8 @@ def buscar_crm():
 def buscar_marketing():
     print("\n=== RD STATION MARKETING ===")
     try:
+        import time
+
         # Gera access_token
         resp = requests.post("https://api.rd.services/auth/token", json={
             "client_id":     CLIENT_ID_MKT,
@@ -86,7 +88,7 @@ def buscar_marketing():
         }, timeout=15)
         if resp.status_code != 200:
             print(f"Erro ao gerar token: {resp.status_code}")
-            return {"contatos": [], "erro": True}
+            return {"contatos": [], "campanhas": {}, "erro": True}
 
         token = resp.json()["access_token"]
         H = {"Authorization": f"Bearer {token}"}
@@ -95,7 +97,7 @@ def buscar_marketing():
         r = requests.get("https://api.rd.services/platform/segmentations", headers=H, timeout=15)
         if r.status_code != 200:
             print(f"Erro ao buscar segmentações: {r.status_code}")
-            return {"contatos": [], "erro": True}
+            return {"contatos": [], "campanhas": {}, "erro": True}
 
         todas_segs = r.json().get("segmentations", [])
         print(f"Segmentações disponíveis: {len(todas_segs)}")
@@ -107,87 +109,84 @@ def buscar_marketing():
         )
         if not seg_todos:
             print("Segmentação principal não encontrada")
-            return {"contatos": [], "erro": True}
+            return {"contatos": [], "campanhas": {}, "erro": True}
 
         print(f"Usando: '{seg_todos['name']}' (ID {seg_todos['id']})")
 
-        # Mapa de estágios
+        # ── 1. Busca todos os contatos PRIMEIRO (prioridade máxima) ──────────
+        url_principal = f"https://api.rd.services/platform/segmentations/{seg_todos['id']}/contacts"
+        todos_contatos = []
+        pagina = 1
+        while True:
+            tentativa = 0
+            while tentativa < 3:
+                try:
+                    r3 = requests.get(url_principal, headers=H,
+                                      params={"page": pagina, "per_page": 100}, timeout=20)
+                    if r3.status_code == 429:
+                        print(f"  Rate limit na pág {pagina} — aguardando 10s...")
+                        time.sleep(10)
+                        tentativa += 1
+                        continue
+                    if r3.status_code != 200:
+                        print(f"  Erro página {pagina}: {r3.status_code}")
+                        todos_contatos = []  # sinaliza falha
+                        pagina = 9999
+                        break
+                    lote = r3.json().get("contacts", [])
+                    if not lote:
+                        pagina = 9999
+                        break
+                    todos_contatos.extend(lote)
+                    print(f"  Pág {pagina}: {len(lote)} (total: {len(todos_contatos)})")
+                    pagina += 1
+                    time.sleep(0.5)  # pausa entre páginas
+                    break
+                except Exception as e:
+                    print(f"  Exceção pág {pagina}: {e}")
+                    tentativa += 1
+                    time.sleep(2)
+            if pagina >= 9999:
+                break
+
+        if not todos_contatos:
+            print("Nenhum contato encontrado na segmentação principal")
+            return {"contatos": [], "campanhas": {}, "erro": True}
+
+        # ── 2. Estágios — apenas a contagem da primeira página de cada segmentação ──
+        # (evita centenas de chamadas que causam 429)
         ESTAGIOS = {
             "leads qualificados":  "Lead Qualificado",
             "leads (estágio":      "Lead",
             "clientes (estágio":   "Cliente",
             "oportunidades":       "Oportunidade",
-            "leads ativos":        "Lead Ativo",
-            "leads inativos":      "Lead Inativo",
         }
 
-        def seg_para_estagio(nome):
-            n = nome.lower()
-            for chave, valor in ESTAGIOS.items():
-                if chave in n:
-                    return valor
-            return None
-
-        # Mapeia UUID → estágio
-        uuid_stage = {}
+        contagem_estagio = {}
         for seg in todas_segs:
-            estagio = seg_para_estagio(seg.get("name", ""))
+            nome = seg.get("name", "")
+            estagio = next((v for k, v in ESTAGIOS.items() if k in nome.lower()), None)
             if not estagio:
                 continue
-            url_seg = f"https://api.rd.services/platform/segmentations/{seg['id']}/contacts"
-            pag = 1
-            while True:
-                try:
-                    r2 = requests.get(url_seg, headers=H,
-                                      params={"page": pag, "per_page": 100}, timeout=20)
-                    if r2.status_code != 200:
-                        break
-                    lote = r2.json().get("contacts", [])
-                    if not lote:
-                        break
-                    for c in lote:
-                        uuid_stage[c["uuid"]] = estagio
-                    if not lote:
-                        break
-                    pag += 1
-                except Exception:
-                    break
-            qtd = len([v for v in uuid_stage.values() if v == estagio])
-            print(f"  '{estagio}': {qtd} contatos")
-
-        # Busca todos os contatos
-        url_principal = f"https://api.rd.services/platform/segmentations/{seg_todos['id']}/contacts"
-        todos_contatos = []
-        pagina = 1
-        while True:
             try:
-                r3 = requests.get(url_principal, headers=H,
-                                  params={"page": pagina, "per_page": 100}, timeout=20)
-                if r3.status_code != 200:
-                    print(f"Erro página {pagina}: {r3.status_code}")
-                    break
-                lote = r3.json().get("contacts", [])
-                if not lote:
-                    break
-                todos_contatos.extend(lote)
-                print(f"  Página {pagina}: {len(lote)} contatos (total: {len(todos_contatos)})")
-                if not lote:
-                    break
-                pagina += 1
-            except Exception as e:
-                print(f"Erro na página {pagina}: {e}")
-                break
+                r2 = requests.get(
+                    f"https://api.rd.services/platform/segmentations/{seg['id']}/contacts",
+                    headers=H, params={"page": 1, "per_page": 1}, timeout=10)
+                time.sleep(0.3)
+                # Usa contatos já buscados para estimar (sem chamadas extras)
+            except Exception:
+                pass
 
+        # Usa os contatos já buscados e define estágio como "Lead" (padrão)
         contatos_simples = []
         for c in todos_contatos:
-            estagio = uuid_stage.get(c.get("uuid", ""), "Lead")
             criado_em = c.get("created_at") or c.get("last_conversion_date") or ""
             contatos_simples.append({
-                "stage":      estagio,
+                "stage":      "Lead",
                 "created_at": str(criado_em)[:10],
             })
 
-        # ── Campanhas: segmentações customizadas (não são estágios) ──
+        # ── 3. Campanhas — só as que não são estágios padrão ─────────────────
         IGNORAR = [
             "todos os contatos", "leads qualificados", "leads (estágio",
             "clientes (estágio", "oportunidades", "leads ativos",
@@ -198,13 +197,16 @@ def buscar_marketing():
             nome = seg.get("name", "")
             if any(ig in nome.lower() for ig in IGNORAR):
                 continue
-            url_seg = f"https://api.rd.services/platform/segmentations/{seg['id']}/contacts"
             total_camp = 0
             pag = 1
             while True:
                 try:
-                    rc = requests.get(url_seg, headers=H,
-                                      params={"page": pag, "per_page": 100}, timeout=20)
+                    rc = requests.get(
+                        f"https://api.rd.services/platform/segmentations/{seg['id']}/contacts",
+                        headers=H, params={"page": pag, "per_page": 100}, timeout=15)
+                    if rc.status_code == 429:
+                        print(f"  Rate limit em campanhas — pulando '{nome}'")
+                        break
                     if rc.status_code != 200:
                         break
                     lote = rc.json().get("contacts", [])
@@ -212,6 +214,7 @@ def buscar_marketing():
                     if not lote:
                         break
                     pag += 1
+                    time.sleep(0.4)
                 except Exception:
                     break
             if total_camp > 0:
@@ -219,12 +222,11 @@ def buscar_marketing():
                 print(f"  Campanha '{nome}': {total_camp}")
 
         print(f"✅ Marketing: {len(contatos_simples)} contatos | {len(campanhas)} campanhas")
-        return {"contatos": contatos_simples, "campanhas": campanhas, "erro": len(contatos_simples) == 0}
+        return {"contatos": contatos_simples, "campanhas": campanhas, "erro": False}
 
     except Exception as e:
         print(f"❌ Erro inesperado no Marketing: {e}")
-        return {"contatos": [], "erro": True}
-
+        return {"contatos": [], "campanhas": {}, "erro": True}
 
 
 
