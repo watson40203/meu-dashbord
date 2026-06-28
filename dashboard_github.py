@@ -558,7 +558,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
 <body>
 
 <!-- TELA DE AUTENTICAÇÃO -->
-<div id="auth-wrap">
+<div id="auth-wrap" style="display:none!important">
 <div class="acard">
   <div style="margin-bottom:18px">{logo_big}</div>
   <div class="atabs">
@@ -1313,17 +1313,10 @@ cF=new Chart($i("gF"),{{
 cCE=new Chart($i("gCE"),{{type:"bar",data:{{labels:[],datasets:[{{label:"Neg.",data:[],backgroundColor:"#0071e3",borderRadius:6}}]}},options:{{plugins:{{legend:{{display:false}},datalabels:{{display:false}}}},scales:{{y:{{beginAtZero:true}},x:{{grid:{{display:false}}}}}}  }}}});
 cCV=new Chart($i("gCV"),{{type:"doughnut",data:{{labels:[],datasets:[{{data:[],backgroundColor:["#0071e3","#32ade6","#28cd41","#ff9500","#ff3b30","#5e5ce6","#ff2d55"]}}]}},options:{{plugins:{{legend:{{position:"bottom",labels:{{font:{{size:11}},padding:12}}}},datalabels:{{color:"#fff",font:{{weight:"bold",size:12}},formatter:(v,ctx)=>{{const s=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=v/s*100;return p>5?p.toFixed(1)+"%":"";}}  }}}}}}}});
 
-// Inicialização — mostra login ou dashboard conforme sessão
-const saved=localStorage.getItem("im_current");
-if(saved){{
-  try{{currentUser=JSON.parse(saved);}}catch(e){{currentUser=null;}}
-}}
-if(currentUser){{
-  $i("auth-wrap").style.display="none";
-  initUI();
-  filtrar();
-}}
-// Se não tem sessão, o overlay de login aparece naturalmente (display:flex no CSS)
+// Inicialização — carrega direto sem login
+currentUser={{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}};
+initUI();
+filtrar();
 </script>
 </body></html>"""
 
