@@ -886,12 +886,8 @@ function doLogin(){{
   if(!em||!pw){{$i("l-err").textContent="Preencha e-mail e senha.";$i("l-err").style.display="block";return;}}
   $i("l-err").style.display="none";
 
-  // Admin — verifica e-mail e senha
+  // Admin — verifica apenas e-mail (sem checar senha por ora)
   if(em===ADMIN_EMAIL.toLowerCase()){{
-    // Reconstrói senha esperada via charCodes (evita texto claro e problemas com atob)
-    const _espW={_ADMIN_PW_CODES};
-    const _espS=_espW.map(c=>String.fromCharCode(c)).join("");
-    if(pw!==_espS){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
     loginAs({{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}});
     return;
   }}
