@@ -1,6 +1,6 @@
 """
 Dashboard Unificado - RD Station
-Design: Apple Liquid Glass (tema claro, azul)
+Design: Apple (tema claro, azul)
 """
 
 import requests
@@ -9,11 +9,31 @@ import base64
 import os
 from datetime import datetime
 
-LOGO_PATH = "logoapp.jpeg"
+# ── Importa configurações separadas ──────────────────────────────────────────
+try:
+    from auth_config import ADMIN_EMAIL, ADMIN_NOME, ADMIN_PASSWORD, USUARIOS_PRE_APROVADOS
+except ImportError:
+    ADMIN_EMAIL             = "watson@imincorporadora.com.br"
+    ADMIN_NOME              = "Watson Slonski"
+    ADMIN_PASSWORD          = "Alana052130"
+    USUARIOS_PRE_APROVADOS  = []
 
-def carregar_logo_base64():
-    if os.path.exists(LOGO_PATH):
-        with open(LOGO_PATH, "rb") as f:
+try:
+    from user_config import EQUIPE, METAS_SDR, METAS_MENSAIS
+except ImportError:
+    EQUIPE         = {}
+    METAS_SDR      = {}
+    METAS_MENSAIS  = {}
+
+import base64 as _b64
+_ADMIN_PW_B64 = _b64.b64encode(ADMIN_PASSWORD.encode()).decode()
+
+LOGO_DISPLAY = "logo.png"     # navbar + login
+LOGO_FAVICON  = "logoapp.jpeg"  # só aba do navegador
+
+def carregar_logo_base64(path):
+    if os.path.exists(path):
+        with open(path, "rb") as f:
             return base64.b64encode(f.read()).decode("utf-8")
     return None
 
@@ -277,9 +297,10 @@ def gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees):
     from datetime import datetime
 
     # Logo
-    lb = carregar_logo_base64()
-    logo_nav = f'<img src="data:image/jpeg;base64,{lb}" style="height:32px;object-fit:contain">' if lb else '<span style="font-weight:900;font-size:16px;letter-spacing:-0.5px">IM</span>'
-    logo_big = f'<img src="data:image/jpeg;base64,{lb}" style="height:54px;object-fit:contain;margin-bottom:4px">' if lb else '<div style="font-size:30px;font-weight:900;letter-spacing:-1px;color:#0071e3">IM</div>'
+    lb         = carregar_logo_base64(LOGO_DISPLAY)   # logo principal
+    lb_favicon = carregar_logo_base64(LOGO_FAVICON)   # aba do navegador
+    logo_nav = f'<img src="data:image/png;base64,{lb}" style="height:32px;object-fit:contain">' if lb else '<span style="font-weight:900;font-size:16px;letter-spacing:-0.5px">IM</span>'
+    logo_big = f'<img src="data:image/png;base64,{lb}" style="height:54px;object-fit:contain;margin-bottom:4px">' if lb else '<div style="font-size:30px;font-weight:900;letter-spacing:-1px;color:#0071e3">IM</div>'
 
     # Dados para JS
     CRM_JS        = json.dumps(crm_deals)
@@ -317,7 +338,7 @@ def gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard IM</title>
-{f'<link rel="icon" type="image/jpeg" href="data:image/jpeg;base64,{lb}">' if lb else ''}
+{f'<link rel="icon" type="image/jpeg" href="data:image/jpeg;base64,{lb_favicon}">' if lb_favicon else ''}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <style>
@@ -550,7 +571,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <input type="password" id="l-pw" class="ainp" placeholder="Senha" onkeydown="if(event.key==='Enter')doLogin()">
     <div class="aerro" id="l-err">E-mail ou senha incorretos</div>
     <button class="abtn" onclick="doLogin()">Entrar</button>
-    <div style="font-size:12px;color:var(--t3);margin-top:12px">Demo: qualquer credencial funciona</div>
+
   </div>
 
   <!-- CADASTRO -->
@@ -810,7 +831,8 @@ const MESES=[{",".join(f'"{m}"' for m in MESES_NOMES)}];
 const DEFAULT_GOALS={MESES_GOALS_DEFAULT};
 const ORDEM=["LEADS","EM CONTATO","AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIAÇÃO","FECHAMENTO"];
 const NOMES={{kpis:"KPIs",crm:"CRM",mkt:"Marketing",conv:"Conversas",cal:"Calendário",perfil:"Meu Perfil",cfg:"Config (Admin)"}};
-const ADMIN_EMAIL="watson@imincorporadora.com.br";
+const ADMIN_EMAIL="{ADMIN_EMAIL}";
+
 
 let periodo="tudo", calAno=new Date().getFullYear(), calMes=new Date().getMonth();
 let fcArr=[], cF,cCE,cCV;
@@ -825,8 +847,11 @@ function saveUsers(u){{localStorage.setItem("im_users",JSON.stringify(u))}}
 function showTab(t){{
   document.querySelectorAll(".aform").forEach(f=>f.classList.remove("vis"));
   document.querySelectorAll(".atab").forEach(b=>b.classList.remove("on"));
-  $i("form-"+t).classList.add("vis");
-  document.querySelectorAll(".atab")[t==="login"?0:1]?.classList.add("on");
+  const form=$i("form-"+t);
+  if(form) form.classList.add("vis");
+  const btns=document.querySelectorAll(".atab");
+  if(t==="login"&&btns[0]) btns[0].classList.add("on");
+  if(t==="register"&&btns[1]) btns[1].classList.add("on");
 }}
 
 function previewRegPhoto(inp){{
@@ -860,13 +885,12 @@ function doLogin(){{
   if(!em||!pw){{$i("l-err").textContent="Preencha e-mail e senha.";$i("l-err").style.display="block";return;}}
   $i("l-err").style.display="none";
 
-  // Admin
-  if(em===ADMIN_EMAIL.toLowerCase() && pw===atob("QWxhbmEwNTIxMzA=")){{
-    loginAs({{id:"admin",name:"Watson Slonski",email:ADMIN_EMAIL,photo:"",status:"approved"}});
+  // Admin — aceita .com e .com.br
+  const isAdmin=ADMIN_EMAILS.some(e=>e.toLowerCase()===em);
+  if(isAdmin){{
+    if(pw!==atob("{_ADMIN_PW_B64}")){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
+    loginAs({{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}});
     return;
-  }}
-  if(em===ADMIN_EMAIL.toLowerCase() && pw!==atob("QWxhbmEwNTIxMzA=")){{
-    $i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;
   }}
 
   // Usuários cadastrados
