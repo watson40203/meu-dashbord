@@ -798,9 +798,9 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
 
 <script>
 Chart.register(ChartDataLabels);
-const CRM={json.dumps(crm)}, MKT={json.dumps(mkt)};
-const CG={json.dumps({k:v["gasto"] for k,v in CAMPANHAS.items()})};
-const CL={json.dumps({k:v["leads"] for k,v in CAMPANHAS.items()})};
+const CRM={CRM_JS}, MKT={MKT_JS}, EMP={EMP_JS};
+const CG={CAMP_GASTO_JS}, CL={CAMP_LEADS_JS};
+const CONV_TOTAL={CONV_TOTAL_N};
 const VGV0={META_VGV}, ENT0={META_ENT};
 const MESES=[{",".join(f'"{m}"' for m in MESES_NOMES)}];
 const DEFAULT_GOALS={MESES_GOALS_DEFAULT};
@@ -1309,4 +1309,10 @@ if __name__ == "__main__":
     print(f"Marketing: {len(mkt_data['contatos'])} contatos")
     print(f"Conversas: {conv_total} contatos | {len(conv_employees)} atendentes")
 
-    gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees)
+    try:
+        gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees)
+    except Exception as e:
+        import traceback, sys
+        print(f"\n❌ ERRO em gerar_dashboard:", flush=True)
+        traceback.print_exc(file=sys.stdout)
+        sys.exit(1)
