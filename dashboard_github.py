@@ -1,6 +1,6 @@
 """
 Dashboard Unificado - RD Station
-Design: Apple Liquid Glass (tema claro, azul)
+Design: Apple (tema claro, azul)
 """
 
 import requests
@@ -8,6 +8,25 @@ import json
 import base64
 import os
 from datetime import datetime
+
+# ── Importa configurações separadas ──────────────────────────────────────────
+try:
+    from auth_config import ADMIN_EMAIL, ADMIN_NOME, ADMIN_PASSWORD, USUARIOS_PRE_APROVADOS
+except ImportError:
+    ADMIN_EMAIL             = "watson@imincorporadora.com.br"
+    ADMIN_NOME              = "Watson Slonski"
+    ADMIN_PASSWORD          = "Alana052130"
+    USUARIOS_PRE_APROVADOS  = []
+
+try:
+    from user_config import EQUIPE, METAS_SDR, METAS_MENSAIS
+except ImportError:
+    EQUIPE         = {}
+    METAS_SDR      = {}
+    METAS_MENSAIS  = {}
+
+import base64 as _b64
+_ADMIN_PW_B64 = _b64.b64encode(ADMIN_PASSWORD.encode()).decode()
 
 LOGO_DISPLAY = "logo.png"     # navbar + login
 LOGO_FAVICON  = "logoapp.jpeg"  # só aba do navegador
@@ -812,8 +831,8 @@ const MESES=[{",".join(f'"{m}"' for m in MESES_NOMES)}];
 const DEFAULT_GOALS={MESES_GOALS_DEFAULT};
 const ORDEM=["LEADS","EM CONTATO","AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIAÇÃO","FECHAMENTO"];
 const NOMES={{kpis:"KPIs",crm:"CRM",mkt:"Marketing",conv:"Conversas",cal:"Calendário",perfil:"Meu Perfil",cfg:"Config (Admin)"}};
-const ADMIN_EMAIL="watson@imincorporadora.com.br";
-const ADMIN_EMAILS=["watson@imincorporadora.com.br","watson@imincorporadora.com","watson@im.com.br"];
+const ADMIN_EMAIL="{ADMIN_EMAIL}";
+
 
 let periodo="tudo", calAno=new Date().getFullYear(), calMes=new Date().getMonth();
 let fcArr=[], cF,cCE,cCV;
@@ -869,8 +888,8 @@ function doLogin(){{
   // Admin — aceita .com e .com.br
   const isAdmin=ADMIN_EMAILS.some(e=>e.toLowerCase()===em);
   if(isAdmin){{
-    if(pw!==atob("QWxhbmEwNTIxMzA=")){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
-    loginAs({{id:"admin",name:"Watson Slonski",email:ADMIN_EMAIL,photo:"",status:"approved"}});
+    if(pw!==atob("{_ADMIN_PW_B64}")){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
+    loginAs({{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}});
     return;
   }}
 
