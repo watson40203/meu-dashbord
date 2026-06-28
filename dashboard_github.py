@@ -1213,7 +1213,7 @@ function filtrar(){{
   // CRM
   $i("ct").textContent=lds.toLocaleString("pt-BR");$i("cv2").textContent=R(deals.reduce((a,d)=>a+d.value,0));
   const tot=deals.length||1,cop=$i("cop");cop.innerHTML="";
-  const ETPOS=["AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIAÇÃO","FECHAMENTO"];
+  // ETPOS já definido acima — reutiliza
   Object.entries(pu).sort((a,b)=>b[1]-a[1]).forEach(([u,cnt])=>{{
     const agOp=deals.filter(d=>d.user===u&&ETPOS.some(e=>d.stage.toUpperCase().includes(e))&&!d.stage.toUpperCase().includes("PERDID")).length;
     const fchOp=deals.filter(d=>d.user===u&&d.stage.toUpperCase().includes("FECHA")).length;
