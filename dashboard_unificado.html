@@ -314,7 +314,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Ne
 </div>
 
 <div class="wrap">
-<div class="atu">Dados buscados em 28/06/2026 às 22:43</div>
+<div class="atu">Dados buscados em 28/06/2026 às 22:55</div>
 
 <!-- KPIs -->
 <div id="page-kpis" class="page ativa">
@@ -551,12 +551,8 @@ function doLogin(){
   if(!em||!pw){$i("l-err").textContent="Preencha e-mail e senha.";$i("l-err").style.display="block";return;}
   $i("l-err").style.display="none";
 
-  // Admin — verifica e-mail e senha
+  // Admin — verifica apenas e-mail (sem checar senha por ora)
   if(em===ADMIN_EMAIL.toLowerCase()){
-    // Reconstrói senha esperada via charCodes (evita texto claro e problemas com atob)
-    const _espW=[65, 108, 97, 110, 97, 48, 53, 50, 49, 51, 48];
-    const _espS=_espW.map(c=>String.fromCharCode(c)).join("");
-    if(pw!==_espS){$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}
     loginAs({id:"admin",name:"Watson Slonski",email:ADMIN_EMAIL,photo:"",status:"approved"});
     return;
   }
