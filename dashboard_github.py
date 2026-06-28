@@ -17,13 +17,13 @@ def carregar_logo_base64():
             return base64.b64encode(f.read()).decode("utf-8")
     return None
 
-TOKEN_CRM = "681cb285978e2f00145fb15d"
-CLIENT_ID_MKT      = "29720919-7b18-4e7b-8110-a333e8daad15"
-CLIENT_SECRET_MKT  = "67ef94d961d44decbdb33423df2e46af"
-REFRESH_TOKEN_MKT  = "8EEc9Y1JDmnTJ8VYSgIIJAuHzfFH4rTtw5tOBxMI9xs"
-TOKEN_PUBLICO_MKT  = "b502ad2ceb5e524a93c7e094cc79ef68"
-TOKEN_PRIVADO_MKT  = "e07842e6443360d1def8ad5e1cf263c2"
-TOKEN_CONVERSAS = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZSI6IjY4NmQ2ZGQ5NWM4YzA3MDAxMzFiZGVjYyIsImNvbXBhbnkiOiI2NzYxN2VmYWUzNzE1MDc1ZDI5ODhmOGUiLCJpYXQiOjE3NTQ5MjYzMDR9.Al9dIbdGhSeJ86znoIXBOcyt6U7ahVrkGM2xY1MRowU"
+TOKEN_CRM = os.environ.get("TOKEN_CRM", "")
+CLIENT_ID_MKT      = os.environ.get("CLIENT_ID_MKT", "")
+CLIENT_SECRET_MKT  = os.environ.get("CLIENT_SECRET_MKT", "")
+REFRESH_TOKEN_MKT  = os.environ.get("REFRESH_TOKEN_MKT", "")
+TOKEN_PUBLICO_MKT  = os.environ.get("TOKEN_PUBLICO_MKT", "")
+TOKEN_PRIVADO_MKT  = os.environ.get("TOKEN_PRIVADO_MKT", "")
+TOKEN_CONVERSAS = os.environ.get("TOKEN_CONVERSAS", "")
 META_VGV_PADRAO = 2095240.14
 META_ENTRADA_PADRAO = 255239.40
 
@@ -536,7 +536,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
 <body>
 
 <!-- TELA DE AUTENTICAÇÃO -->
-<div id="auth-wrap" style="display:none">
+<div id="auth-wrap">
 <div class="acard">
   <div style="margin-bottom:18px">{logo_big}</div>
   <div class="atabs">
@@ -586,7 +586,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div id="nav-pg">KPIs</div>
   </div>
   <div class="nav-r">
-    <div class="ppill" id="ppill" onclick="togglePer()">📅 Este ano</div>
+    <div class="ppill" id="ppill" onclick="togglePer()">📅 Tudo</div>
     <div class="avatar-btn" id="avatar-btn" onclick="toggleMenu()">
       <img id="nav-avatar-img" style="display:none">
       <span id="nav-avatar-ini">W</span>
@@ -618,7 +618,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
   <button class="pbtn" onclick="sp('este_mes','Este mês',this)">Este mês</button>
   <button class="pbtn" onclick="sp('mes_passado','Mês passado',this)">Mês passado</button>
   <button class="pbtn" onclick="sp('30dias','Últimos 30 dias',this)">Últimos 30 dias</button>
-  <button class="pbtn on" onclick="sp('este_ano','Este ano',this)">Este ano</button>
+  <button class="pbtn on" onclick="sp('tudo','Tudo',this)">Tudo</button>
   <button class="pbtn" onclick="sp('custom','Personalizado',this)">Personalizado...</button>
   <div class="dts" id="dts">
     <label>De <input type="date" id="dti" onchange="filtrar()"></label>
@@ -812,7 +812,7 @@ const ORDEM=["LEADS","EM CONTATO","AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIA
 const NOMES={{kpis:"KPIs",crm:"CRM",mkt:"Marketing",conv:"Conversas",cal:"Calendário",perfil:"Meu Perfil",cfg:"Config (Admin)"}};
 const ADMIN_EMAIL="watson@imincorporadora.com.br";
 
-let periodo="este_ano", calAno=new Date().getFullYear(), calMes=new Date().getMonth();
+let periodo="tudo", calAno=new Date().getFullYear(), calMes=new Date().getMonth();
 let fcArr=[], cF,cCE,cCV;
 let currentUser=null;
 
@@ -856,20 +856,24 @@ function doRegister(){{
 
 function doLogin(){{
   const em=$i("l-em").value.trim(), pw=$i("l-pw").value;
-  if(!em||!pw){{$i("l-err").style.display="block";return;}}
+  if(!em||!pw){{$i("l-err").textContent="Preencha e-mail e senha.";$i("l-err").style.display="block";return;}}
   $i("l-err").style.display="none";
-  // Admin pode sempre entrar
-  if(em===ADMIN_EMAIL){{ loginAs({{id:"admin",name:"Watson Slonski",email:ADMIN_EMAIL,photo:"",status:"approved",pw:""}}); return; }}
-  // Demo: qualquer credencial funciona (ou checa lista real)
+
+  // Admin: verifica e-mail E senha
+  const _APWD=atob("QWxhbmEwNTIxMzA=");
+  if(em===ADMIN_EMAIL){{
+    if(pw!==_APWD){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
+    loginAs({{id:"admin",name:"Watson Slonski",email:ADMIN_EMAIL,photo:"",status:"approved"}});
+    return;
+  }}
+
+  // Usuários cadastrados: só entra se aprovado
   const users=getUsers();
   const u=users.find(x=>x.email===em);
-  if(u){{
-    if(u.status!=="approved"){{$i("l-err").textContent="Acesso aguardando aprovação.";$i("l-err").style.display="block";return;}}
-    loginAs(u);
-  }} else {{
-    // Demo: login livre
-    loginAs({{id:"demo",name:em.split("@")[0],email:em,photo:"",status:"approved"}});
-  }}
+  if(!u){{$i("l-err").textContent="E-mail não cadastrado. Solicite acesso.";$i("l-err").style.display="block";return;}}
+  if(u.pw && btoa(pw)!==u.pw){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
+  if(u.status!=="approved"){{$i("l-err").textContent="Acesso aguardando aprovação do administrador.";$i("l-err").style.display="block";return;}}
+  loginAs(u);
 }}
 
 function loginAs(u){{
@@ -883,7 +887,8 @@ function loginAs(u){{
 function doLogout(){{
   currentUser=null;
   localStorage.removeItem("im_current");
-  location.reload();
+  $i("auth-wrap").style.display="flex";
+  $i("l-em").value="";$i("l-pw").value="";
 }}
 
 function initUI(){{
@@ -1283,12 +1288,17 @@ cF=new Chart($i("gF"),{{
 cCE=new Chart($i("gCE"),{{type:"bar",data:{{labels:[],datasets:[{{label:"Neg.",data:[],backgroundColor:"#0071e3",borderRadius:6}}]}},options:{{plugins:{{legend:{{display:false}},datalabels:{{display:false}}}},scales:{{y:{{beginAtZero:true}},x:{{grid:{{display:false}}}}}}  }}}});
 cCV=new Chart($i("gCV"),{{type:"doughnut",data:{{labels:[],datasets:[{{data:[],backgroundColor:["#0071e3","#32ade6","#28cd41","#ff9500","#ff3b30","#5e5ce6","#ff2d55"]}}]}},options:{{plugins:{{legend:{{position:"bottom",labels:{{font:{{size:11}},padding:12}}}},datalabels:{{color:"#fff",font:{{weight:"bold",size:12}},formatter:(v,ctx)=>{{const s=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=v/s*100;return p>5?p.toFixed(1)+"%":"";}}  }}}}}}}});
 
-// Inicialização — sempre carrega sem depender de login
+// Inicialização — mostra login ou dashboard conforme sessão
 const saved=localStorage.getItem("im_current");
-if(saved){{currentUser=JSON.parse(saved);}}
-if($i("auth-wrap"))$i("auth-wrap").style.display="none";
-initUI();
-filtrar();
+if(saved){{
+  try{{currentUser=JSON.parse(saved);}}catch(e){{currentUser=null;}}
+}}
+if(currentUser){{
+  $i("auth-wrap").style.display="none";
+  initUI();
+  filtrar();
+}}
+// Se não tem sessão, o overlay de login aparece naturalmente (display:flex no CSS)
 </script>
 </body></html>"""
 
