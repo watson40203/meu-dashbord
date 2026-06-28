@@ -885,9 +885,8 @@ function doLogin(){{
   if(!em||!pw){{$i("l-err").textContent="Preencha e-mail e senha.";$i("l-err").style.display="block";return;}}
   $i("l-err").style.display="none";
 
-  // Admin — aceita .com e .com.br
-  const isAdmin=ADMIN_EMAILS.some(e=>e.toLowerCase()===em);
-  if(isAdmin){{
+  // Admin — verifica e-mail e senha
+  if(em===ADMIN_EMAIL.toLowerCase()){{
     if(pw!==atob("{_ADMIN_PW_B64}")){{$i("l-err").textContent="Senha incorreta.";$i("l-err").style.display="block";return;}}
     loginAs({{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}});
     return;
