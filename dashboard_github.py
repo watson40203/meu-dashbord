@@ -484,7 +484,6 @@ body{{
     <input type="password" id="login-senha" class="login-input" placeholder="Senha" onkeydown="if(event.key==='Enter') fazerLogin()">
     <div class="login-erro" id="login-erro">E-mail ou senha incorretos. Tente novamente.</div>
     <button class="login-btn" onclick="fazerLogin()">Entrar</button>
-    <button class="login-cancel" onclick="fecharLogin()">Cancelar</button>
   </div>
 </div>
 
@@ -729,16 +728,12 @@ const NOMES_PAGINA = {{
   cal: 'Calendário', config: 'Configurações'
 }};
 
-// Credenciais de acesso às Configurações
+// Credenciais de acesso
 const _AE = atob('d2F0c29uQGltaW5jb3Jwb3JhZG9yYS5jb20uYnI=');
 const _AS = atob('QWxhbmEwNTIxMzA=');
-let cfgAuth = sessionStorage.getItem('cfg_auth') === '1';
+let autenticado = sessionStorage.getItem('auth') === '1';
 
 function irPara(id){{
-  if(id === 'config' && !cfgAuth){{
-    mostrarLogin();
-    return;
-  }}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('ativa'));
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('ativo'));
   $('page-'+id).classList.add('ativa');
@@ -750,26 +745,21 @@ function irPara(id){{
 }}
 
 function mostrarLogin(){{
-  fecharMenu();
   $('login-email').value='';
   $('login-senha').value='';
   $('login-erro').style.display='none';
   $('login-overlay').classList.add('vis');
-  setTimeout(()=>$('login-email').focus(), 100);
-}}
-
-function fecharLogin(){{
-  $('login-overlay').classList.remove('vis');
+  setTimeout(()=>$('login-email').focus(), 150);
 }}
 
 function fazerLogin(){{
   const email=$('login-email').value.trim();
   const senha=$('login-senha').value;
   if(email===_AE && senha===_AS){{
-    cfgAuth=true;
-    sessionStorage.setItem('cfg_auth','1');
+    autenticado=true;
+    sessionStorage.setItem('auth','1');
     $('login-overlay').classList.remove('vis');
-    irPara('config');
+    filtrar();
   }}else{{
     $('login-erro').style.display='block';
     $('login-senha').value='';
@@ -1038,9 +1028,10 @@ function salvar(){{
   const vgv=parseFloat($('cfg-vgv').value);
   const ent=parseFloat($('cfg-ent').value);
   const entR=parseFloat($('cfg-entr').value);
-  if(!isNaN(vgv)) localStorage.setItem('meta_vgv',vgv);
-  if(!isNaN(ent)) localStorage.setItem('meta_ent',ent);
-  if(!isNaN(entR)) localStorage.setItem('ent_real',entR);
+  // Salva sempre, inclusive zero (remove verificação isNaN que impedia salvar 0)
+  localStorage.setItem('meta_vgv', isNaN(vgv)?VGV0:vgv);
+  localStorage.setItem('meta_ent', isNaN(ent)?ENT0:ent);
+  localStorage.setItem('ent_real', isNaN(entR)?0:entR);
   filtrar();
   $('cfg-ok').style.display='block';
   setTimeout(()=>$('cfg-ok').style.display='none',2500);
@@ -1123,6 +1114,7 @@ cM=new Chart($('gMkt'),{{
   options:{{indexAxis:'y',plugins:{{legend:{{display:false}},datalabels:{{display:false}}}},scales:{{x:{{beginAtZero:true}},y:{{grid:{{display:false}}}}}}}}
 }});
 
+// Só inicializa se já estiver autenticado, senão mostra login
 filtrar();
 </script>
 </body>
