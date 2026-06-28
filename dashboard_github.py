@@ -9,7 +9,7 @@ import base64
 import os
 from datetime import datetime
 
-LOGO_PATH = "logo.png"
+LOGO_PATH = "logoapp.jpeg"
 
 def carregar_logo_base64():
     if os.path.exists(LOGO_PATH):
@@ -17,13 +17,13 @@ def carregar_logo_base64():
             return base64.b64encode(f.read()).decode("utf-8")
     return None
 
-TOKEN_CRM = os.environ.get("TOKEN_CRM", "")
-CLIENT_ID_MKT      = os.environ.get("CLIENT_ID_MKT", "")
-CLIENT_SECRET_MKT  = os.environ.get("CLIENT_SECRET_MKT", "")
-REFRESH_TOKEN_MKT  = os.environ.get("REFRESH_TOKEN_MKT", "")
-TOKEN_PUBLICO_MKT  = os.environ.get("TOKEN_PUBLICO_MKT", "")
-TOKEN_PRIVADO_MKT  = os.environ.get("TOKEN_PRIVADO_MKT", "")
-TOKEN_CONVERSAS = os.environ.get("TOKEN_CONVERSAS", "")
+TOKEN_CRM = "681cb285978e2f00145fb15d"
+CLIENT_ID_MKT      = "29720919-7b18-4e7b-8110-a333e8daad15"
+CLIENT_SECRET_MKT  = "67ef94d961d44decbdb33423df2e46af"
+REFRESH_TOKEN_MKT  = "8EEc9Y1JDmnTJ8VYSgIIJAuHzfFH4rTtw5tOBxMI9xs"
+TOKEN_PUBLICO_MKT  = "b502ad2ceb5e524a93c7e094cc79ef68"
+TOKEN_PRIVADO_MKT  = "e07842e6443360d1def8ad5e1cf263c2"
+TOKEN_CONVERSAS = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbXBsb3llZSI6IjY4NmQ2ZGQ5NWM4YzA3MDAxMzFiZGVjYyIsImNvbXBhbnkiOiI2NzYxN2VmYWUzNzE1MDc1ZDI5ODhmOGUiLCJpYXQiOjE3NTQ5MjYzMDR9.Al9dIbdGhSeJ86znoIXBOcyt6U7ahVrkGM2xY1MRowU"
 META_VGV_PADRAO = 2095240.14
 META_ENTRADA_PADRAO = 255239.40
 
@@ -278,8 +278,8 @@ def gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees):
 
     # Logo
     lb = carregar_logo_base64()
-    logo_nav = f'<img src="data:image/png;base64,{lb}" style="height:32px;object-fit:contain">' if lb else '<span style="font-weight:900;font-size:16px;letter-spacing:-0.5px">IM</span>'
-    logo_big = f'<img src="data:image/png;base64,{lb}" style="height:54px;object-fit:contain;margin-bottom:4px">' if lb else '<div style="font-size:30px;font-weight:900;letter-spacing:-1px;color:#0071e3">IM</div>'
+    logo_nav = f'<img src="data:image/jpeg;base64,{lb}" style="height:32px;object-fit:contain">' if lb else '<span style="font-weight:900;font-size:16px;letter-spacing:-0.5px">IM</span>'
+    logo_big = f'<img src="data:image/jpeg;base64,{lb}" style="height:54px;object-fit:contain;margin-bottom:4px">' if lb else '<div style="font-size:30px;font-weight:900;letter-spacing:-1px;color:#0071e3">IM</div>'
 
     # Dados para JS
     CRM_JS        = json.dumps(crm_deals)
@@ -317,6 +317,7 @@ def gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Dashboard IM</title>
+{f'<link rel="icon" type="image/jpeg" href="data:image/jpeg;base64,{lb}">' if lb else ''}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
 <style>
