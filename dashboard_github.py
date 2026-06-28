@@ -693,7 +693,10 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div class="cc"><div class="ct">Valor por etapa (%)</div><canvas id="gCV"></canvas></div>
   </div>
   <div class="sec">Operadores</div>
-  <div class="card"><table class="tbl"><thead><tr><th>Operador</th><th>Negociações</th><th>Valor</th><th>%</th></tr></thead><tbody id="cop"></tbody></table></div>
+  <div class="card"><table class="tbl">
+    <thead><tr><th>Operador</th><th>Leads</th><th>% Agendamento</th><th>% Fechamento</th><th>VGV Total</th></tr></thead>
+    <tbody id="cop"></tbody>
+  </table></div>
   <div class="sec">Progresso em Visitas Realizadas (Atendimento Realizado)</div>
   <div class="card"><table class="tbl"><thead><tr><th>Operador</th><th>Visitas</th><th>Progresso vs. total</th></tr></thead><tbody id="cvis"></tbody></table></div>
 </div>
@@ -889,12 +892,10 @@ function initUI(){{
     $i("nav-avatar-img").style.display="block";
     $i("nav-avatar-ini").style.display="none";
   }} else {{
-    $i("nav-avatar-ini").textContent=(currentUser?.name||"U")[0].toUpperCase();
+    $i("nav-avatar-ini").textContent=(currentUser?.name||"W")[0].toUpperCase();
   }}
-  // Esconde cfg se não for admin
-  if(currentUser?.email!==ADMIN_EMAIL){{
-    $i("ni-cfg").style.display="none";
-  }}
+  // Config sempre visível (sem sistema de login ativo)
+  if($i("ni-cfg")) $i("ni-cfg").style.display="flex";
   // Pendentes
   renderPendentes();
   // Metas mensais
@@ -907,7 +908,7 @@ function initUI(){{
     $i("pf-av-img").style.display="block";
     $i("pf-av-ini").style.display="none";
   }} else {{
-    $i("pf-av-ini").textContent=(currentUser?.name||"U")[0].toUpperCase();
+    $i("pf-av-ini").textContent=(currentUser?.name||"W")[0].toUpperCase();
   }}
 }}
 
@@ -1181,8 +1182,21 @@ function filtrar(){{
   // CRM
   $i("ct").textContent=lds.toLocaleString("pt-BR");$i("cv2").textContent=R(deals.reduce((a,d)=>a+d.value,0));
   const tot=deals.length||1,cop=$i("cop");cop.innerHTML="";
+  const ETPOS=["AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIAÇÃO","FECHAMENTO"];
   Object.entries(pu).sort((a,b)=>b[1]-a[1]).forEach(([u,cnt])=>{{
-    cop.innerHTML+=`<tr><td style="font-weight:600">${{u}}</td><td class="tn">${{cnt}}</td><td>${{R(pvu[u]||0)}}</td><td style="color:var(--t3)">${{(cnt/tot*100).toFixed(1)}}%</td></tr>`;
+    const agOp=deals.filter(d=>d.user===u&&ETPOS.some(e=>d.stage.toUpperCase().includes(e))&&!d.stage.toUpperCase().includes("PERDID")).length;
+    const fchOp=deals.filter(d=>d.user===u&&d.stage.toUpperCase().includes("FECHA")).length;
+    const pctAg=cnt>0?(agOp/cnt*100).toFixed(0)+"%" :"—";
+    const pctFch=cnt>0?(fchOp/cnt*100).toFixed(0)+"%" :"—";
+    const corAg=agOp/cnt>=0.3?"var(--gr)":agOp/cnt>=0.15?"var(--or)":"var(--rd)";
+    const corFch=fchOp/cnt>=0.1?"var(--gr)":fchOp/cnt>=0.05?"var(--or)":"var(--rd)";
+    cop.innerHTML+=`<tr>
+      <td style="font-weight:600">${{u}}</td>
+      <td class="tn">${{cnt}}</td>
+      <td style="font-weight:700;color:${{corAg}}">${{pctAg}}</td>
+      <td style="font-weight:700;color:${{corFch}}">${{pctFch}}</td>
+      <td>${{R(pvu[u]||0)}}</td>
+    </tr>`;
   }});
 
   // Progresso visitas
@@ -1268,9 +1282,12 @@ cF=new Chart($i("gF"),{{
 cCE=new Chart($i("gCE"),{{type:"bar",data:{{labels:[],datasets:[{{label:"Neg.",data:[],backgroundColor:"#0071e3",borderRadius:6}}]}},options:{{plugins:{{legend:{{display:false}},datalabels:{{display:false}}}},scales:{{y:{{beginAtZero:true}},x:{{grid:{{display:false}}}}}}  }}}});
 cCV=new Chart($i("gCV"),{{type:"doughnut",data:{{labels:[],datasets:[{{data:[],backgroundColor:["#0071e3","#32ade6","#28cd41","#ff9500","#ff3b30","#5e5ce6","#ff2d55"]}}]}},options:{{plugins:{{legend:{{position:"bottom",labels:{{font:{{size:11}},padding:12}}}},datalabels:{{color:"#fff",font:{{weight:"bold",size:12}},formatter:(v,ctx)=>{{const s=ctx.dataset.data.reduce((a,b)=>a+b,0);const p=v/s*100;return p>5?p.toFixed(1)+"%":"";}}  }}}}}}}});
 
-// Inicialização
+// Inicialização — sempre carrega sem depender de login
 const saved=localStorage.getItem("im_current");
-if(saved){{currentUser=JSON.parse(saved);$i("auth-wrap").style.display="none";initUI();filtrar();}}
+if(saved){{currentUser=JSON.parse(saved);}}
+if($i("auth-wrap"))$i("auth-wrap").style.display="none";
+initUI();
+filtrar();
 </script>
 </body></html>"""
 
