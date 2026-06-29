@@ -337,6 +337,13 @@ ESTOQUE = {
 # resultados de buscar_marketing()/buscar_conversas() do dashboard_api.py.
 CONVERSAS_TOTAL = 6681
 
+# Conversões e previsibilidade (vêm do dashboard de marketing/funil — edite ou ligue ao vivo)
+CONVERSOES = {
+    "leadAgend": 0.5, "agendVenda": 34.4, "leadVenda": 0.17,
+    "agendamentos": 32, "vendas": 11,
+}
+PREVISIBILIDADE = {"leadsPorVenda": 609, "vendasMes": 0.9, "receitaMes": 952508}
+
 
 def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
                      abertos, ganhos, perdidos, n_ganho, n_perda, win_rate,
@@ -376,6 +383,10 @@ def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
         "pct": round(v["n"] / tot_perda * 100), "valor": round(v["valor"], 2),
     } for motivo, v in motivos_ord[:12]]
 
+    # Pipeline executivo (qtd por etapa + fechamento)
+    pipeline_exec = [{"nome": e["nome"], "qtd": e["qtd"]} for e in etapas_fmt]
+    pipeline_exec.append({"nome": "Fechamento", "qtd": n_ganho})
+
     carimbo = hoje.strftime("%d/%m/%Y às %H:%M")
     dados = {
         "buscadoEm": carimbo, "atualizadoEm": carimbo,
@@ -394,6 +405,10 @@ def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
 
         "winRate": round(win_rate, 2), "ganhos": n_ganho, "perdidos": n_perda,
         "cicloDias": ciclo_medio,
+
+        "conversoes": CONVERSOES,
+        "previsibilidade": PREVISIBILIDADE,
+        "pipelineExecutivo": pipeline_exec,
 
         "estoque": ESTOQUE,
         "corretores": corretores_fmt,
