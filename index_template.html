@@ -282,7 +282,7 @@ function toggleNav(){document.getElementById('sb').classList.toggle('open');docu
 /*    const DADOS = await fetch('/api/rd/kpis').then(r => r.json());      */
 /*  NUNCA coloque o token da API do RD direto neste arquivo.              */
 /* ===================================================================== */
-const DADOS = {"buscadoEm": "29/06/2026 às 19:47", "atualizadoEm": "29/06/2026 às 19:47", "dataFiltro": "29/06/2026", "metaVGV": 3200000.0, "metaEntrada": 300000.0, "realizadoVGV": 359000.0, "realizadoEntrada": 50000.0, "receitaFechada": 359000.0, "pipelineAtivo": 21245000.0, "previsaoPonderada": 11635750.0, "negociacoesAtivas": 119, "leadsMarketing": 4125, "leadsCRM": 6300, "ticketMedio": 973853.38, "corretores": [{"nome": "Jéssica Cararo", "cargo": "Coordenadora de Plataforma", "vgv": 359000.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "João Vasconcelos", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 85750.0}, {"nome": "Jonathan Vitorino", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "Giovana", "cargo": "Coordenadora de Plataforma", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}]};
+const DADOS = __DADOS_JSON__;
 
 const f0 = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
 const f2 = n => 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
