@@ -2,7 +2,7 @@ name: Gerar Dashboard
 
 on:
   push:
-    branches: [ main ]      # Republica quando você salvar arquivos (ex: config.json)
+    branches: [ main ]      # Republica quando você salvar arquivos
   schedule:
     - cron: '0 */6 * * *'   # Atualiza a cada 6 horas
   workflow_dispatch:         # Botão para rodar manualmente
@@ -26,7 +26,7 @@ jobs:
       - name: Instalar dependências
         run: pip install requests
 
-      - name: Gerar dashboard
+      - name: Gerar dashboard principal
         env:
           TOKEN_CRM: ${{ secrets.TOKEN_CRM }}
           CLIENT_ID_MKT: ${{ secrets.CLIENT_ID_MKT }}
@@ -37,8 +37,13 @@ jobs:
           TOKEN_CONVERSAS: ${{ secrets.TOKEN_CONVERSAS }}
         run: python dashboard_github.py
 
-      - name: Renomear para index.html
+      - name: Renomear principal para index.html
         run: cp dashboard_unificado.html index.html
+
+      - name: Gerar dashboard de pipeline
+        env:
+          TOKEN_CRM: ${{ secrets.TOKEN_CRM }}
+        run: python dashboard_pipeline.py
 
       - name: Publicar no GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
