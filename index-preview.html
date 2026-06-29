@@ -190,8 +190,8 @@
     <div class="lbl">Previsão, metas &amp; funil</div>
     <div class="row mid">
       <div class="prev-card">
-        <div class="ring" id="prev-ring"><div class="ring-in"><div class="v num" id="prev-v"></div><div class="l">previsão</div></div></div>
-        <div class="info"><div class="cap">Previsão de fechamento</div><div class="pc num" id="prev-pc"></div><div class="sub" id="prev-sub"></div></div>
+        <div class="ring" id="prev-ring"><div class="ring-in"><div class="v num" id="prev-v"></div><div class="l">prev. real</div></div></div>
+        <div class="info"><div class="cap">Previsão realista (mês)</div><div class="pc num" id="prev-pc"></div><div class="sub" id="prev-sub"></div></div>
       </div>
       <div class="sect-card"><h2>Metas do período</h2>
         <div class="metas2">
@@ -211,7 +211,7 @@
 
     <div class="lbl">Pipeline ponderado &amp; perdas</div>
     <div class="row g2">
-      <div class="sect-card"><h2>Pipeline ponderado por etapa</h2><div class="chart-box"><canvas id="pizzaEtapas" role="img" aria-label="Distribuição do valor ponderado por etapa do pipeline."></canvas></div><div class="legend" id="leg-etapas"></div></div>
+      <div class="sect-card"><h2>Pipeline ponderado por etapa <span style="text-transform:none;color:var(--ink3);font-weight:400">(potencial)</span></h2><div class="chart-box"><canvas id="pizzaEtapas" role="img" aria-label="Distribuição do valor ponderado por etapa do pipeline."></canvas></div><div class="legend" id="leg-etapas"></div><p class="note">Ponderado pelos pesos das etapas — é o <b>potencial</b>, não a previsão. A previsão realista (conversão atual) está no card acima.</p></div>
       <div class="sect-card"><h2>Motivos de perda</h2><div class="chart-box"><canvas id="pizzaMotivos" role="img" aria-label="Distribuição dos motivos de perda."></canvas></div><div class="legend" id="leg-motivos"></div></div>
     </div>
 
@@ -273,7 +273,7 @@
 </main>
 
 <script>
-const DADOS = {"buscadoEm": "29/06/2026 às 20:41", "atualizadoEm": "29/06/2026 às 20:41", "dataFiltro": "29/06/2026", "metaVGV": 3200000.0, "metaEntrada": 300000.0, "realizadoVGV": 359000, "realizadoEntrada": 50000.0, "receitaFechada": 359000, "pipelineAtivo": 21245000, "previsaoPonderada": 11635750.0, "negociacoesAtivas": 104, "leadsMarketing": 4125, "leadsCRM": 6300, "conversasTotal": 6681, "ticketMedio": 359000.0, "winRate": 0.83, "ganhos": 1, "perdidos": 120, "cicloDias": 60, "conversoes": {"leadAgend": 0.5, "agendVenda": 34.4, "leadVenda": 0.17, "agendamentos": 32, "vendas": 11}, "previsibilidade": {"leadsPorVenda": 609, "vendasMes": 0.9, "receitaMes": 952508}, "pipelineExecutivo": [{"nome": "Lead", "qtd": 28}, {"nome": "Em contato", "qtd": 70}, {"nome": "Atendimento", "qtd": 1}, {"nome": "Negociação", "qtd": 5}, {"nome": "Fechamento", "qtd": 1}], "estoque": {"total": 200, "disponivelQtd": 44, "disponivelValor": 46976275.59, "porEmpreendimento": [{"nome": "Laguna Sky Garden", "total": 75, "disp": 15, "valor": 26099057.15}, {"nome": "Sintropia Sky Garden", "total": 97, "disp": 29, "valor": 20877218.44}, {"nome": "Residencial Girassol", "total": 20, "disp": 0, "valor": 0.0}, {"nome": "Residencial Lótus", "total": 8, "disp": 0, "valor": 0.0}]}, "corretores": [{"nome": "Jéssica Cararo", "cargo": "Coordenadora de Plataforma", "vgv": 359000.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "João Vasconcelos", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 11550000.0}, {"nome": "Jonathan Vitorino", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 85750.0}, {"nome": "Giovana", "cargo": "Coordenadora de Plataforma", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}], "etapas": [{"nome": "Lead", "peso": 5, "qtd": 28, "bruto": 0.0, "pond": 0.0}, {"nome": "Em contato", "peso": 10, "qtd": 70, "bruto": 0.0, "pond": 0.0}, {"nome": "Atendimento", "peso": 35, "qtd": 1, "bruto": 245000.0, "pond": 85750.0}, {"nome": "Negociação", "peso": 55, "qtd": 5, "bruto": 21000000.0, "pond": 11550000.0}], "motivos": [{"motivo": "Engano", "qtd": 28, "pct": 23, "valor": 8412000.0}, {"motivo": "Optou por outro empreendimento", "qtd": 25, "pct": 21, "valor": 8274000.0}, {"motivo": "Falta de entrada", "qtd": 23, "pct": 19, "valor": 8589000.0}, {"motivo": "Não tem mais interesse", "qtd": 23, "pct": 19, "valor": 7189000.0}, {"motivo": "Não respondeu", "qtd": 21, "pct": 18, "valor": 5826000.0}], "campanhas": [], "atendentes": []};
+const DADOS = {"buscadoEm": "29/06/2026 às 21:04", "atualizadoEm": "29/06/2026 às 21:04", "dataFiltro": "29/06/2026", "metaVGV": 3200000.0, "metaEntrada": 300000.0, "realizadoVGV": 359000, "realizadoEntrada": 50000.0, "receitaFechada": 359000, "pipelineAtivo": 21245000, "previsaoPonderada": 11635750.0, "previsaoRealista": 323100, "negociacoesAtivas": 34, "leadsMarketing": 4125, "leadsCRM": 6300, "conversasTotal": 6681, "ticketMedio": 359000.0, "winRate": 0.83, "ganhos": 1, "perdidos": 120, "cicloDias": 60, "conversoes": {"leadAgend": 0.5, "agendVenda": 34.4, "leadVenda": 0.17, "agendamentos": 32, "vendas": 11}, "previsibilidade": {"leadsPorVenda": 609, "vendasMes": 0.9, "receitaMes": 323100}, "pipelineExecutivo": [{"nome": "Lead", "qtd": 28}, {"nome": "Atendimento", "qtd": 1}, {"nome": "Negociação", "qtd": 5}, {"nome": "Fechamento", "qtd": 1}], "estoque": {"total": 200, "disponivelQtd": 44, "disponivelValor": 46976275.59, "porEmpreendimento": [{"nome": "Laguna Sky Garden", "total": 75, "disp": 15, "valor": 26099057.15}, {"nome": "Sintropia Sky Garden", "total": 97, "disp": 29, "valor": 20877218.44}, {"nome": "Residencial Girassol", "total": 20, "disp": 0, "valor": 0.0}, {"nome": "Residencial Lótus", "total": 8, "disp": 0, "valor": 0.0}]}, "corretores": [{"nome": "Jéssica Cararo", "cargo": "Coordenadora de Plataforma", "vgv": 359000.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "João Vasconcelos", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 11550000.0}, {"nome": "Jonathan Vitorino", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 85750.0}, {"nome": "Giovana", "cargo": "Coordenadora de Plataforma", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}], "etapas": [{"nome": "Lead", "peso": 5, "qtd": 28, "bruto": 0.0, "pond": 0.0}, {"nome": "Atendimento", "peso": 35, "qtd": 1, "bruto": 245000.0, "pond": 85750.0}, {"nome": "Negociação", "peso": 55, "qtd": 5, "bruto": 21000000.0, "pond": 11550000.0}], "motivos": [{"motivo": "Falta de entrada", "qtd": 29, "pct": 24, "valor": 7677000.0}, {"motivo": "Não tem mais interesse", "qtd": 29, "pct": 24, "valor": 8093000.0}, {"motivo": "Engano", "qtd": 24, "pct": 20, "valor": 7320000.0}, {"motivo": "Não respondeu", "qtd": 22, "pct": 18, "valor": 6449000.0}, {"motivo": "Optou por outro empreendimento", "qtd": 16, "pct": 13, "valor": 4595000.0}], "campanhas": [], "atendentes": []};
 
 const f0 = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
 const fM = n => 'R$ ' + (n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 'M';
@@ -337,10 +337,12 @@ function render(){
   set('pv-vendas', (pv.vendasMes||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'/mês');
   set('pv-receita', f0(pv.receitaMes||0)); set('pv-receita-sub', (pv.vendasMes||0)+' × '+f0(d.ticketMedio));
 
-  // Previsão + anel
-  set('prev-v', fM(d.previsaoPonderada)); set('prev-pc', f0(d.previsaoPonderada));
-  document.getElementById('prev-ring').style.setProperty('--p', Math.min(cobertura,100).toFixed(0)+'%');
-  set('prev-sub', 'do pipeline ponderado · anel = '+Math.round(cobertura)+'% da meta (completa em 100%)');
+  // Previsão REALISTA (consistente com a previsibilidade) + anel vs meta
+  const realista = d.previsaoRealista || ((d.previsibilidade||{}).receitaMes) || 0;
+  const covReal = d.metaVGV? realista/d.metaVGV*100 : 0;
+  set('prev-v', fM(realista)); set('prev-pc', f0(realista));
+  document.getElementById('prev-ring').style.setProperty('--p', Math.min(covReal,100).toFixed(0)+'%');
+  set('prev-sub', 'baseada na conversão real · anel = '+Math.round(covReal)+'% da meta · potencial em aberto: '+fM(d.pipelineAtivo)+' (ponderado '+fM(d.previsaoPonderada)+')');
 
   // Metas (única — pacing foi unificado aqui)
   set('m-vgv-real', f0(d.realizadoVGV)); set('m-vgv-meta', f0(d.metaVGV));

@@ -360,6 +360,12 @@ def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
     total_ganho = sum(d.get("value", 0) for d in ganhos)
     ticket = (total_ganho / n_ganho) if n_ganho else 0.0
 
+    # Previsão REALISTA (conversão real), consistente com a previsibilidade.
+    # = vendas previstas/mês × ticket médio.  (NÃO usa os pesos otimistas das etapas.)
+    prev = dict(PREVISIBILIDADE)
+    prev["receitaMes"] = round(prev["vendasMes"] * ticket)
+    previsao_realista = prev["receitaMes"]
+
     # Corretores (ordenado por VGV no mês)
     corretores_fmt = []
     for kw, m in corretores:
@@ -398,6 +404,7 @@ def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
         "receitaFechada": round(vgv_mes, 2),
         "pipelineAtivo": round(pipe_total, 2),
         "previsaoPonderada": round(pipe_pond, 2),
+        "previsaoRealista": previsao_realista,
         "negociacoesAtivas": len(abertos),
         "leadsMarketing": LEADS_MARKETING, "leadsCRM": LEADS_CRM,
         "conversasTotal": CONVERSAS_TOTAL,
@@ -407,7 +414,7 @@ def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
         "cicloDias": ciclo_medio,
 
         "conversoes": CONVERSOES,
-        "previsibilidade": PREVISIBILIDADE,
+        "previsibilidade": prev,
         "pipelineExecutivo": pipeline_exec,
 
         "estoque": ESTOQUE,
