@@ -655,7 +655,6 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div class="mitem" id="ni-crm" onclick="ir('crm')">{ICO["crm"]}<span>CRM</span></div>
     <div class="mitem" id="ni-mkt" onclick="ir('mkt')">{ICO["mkt"]}<span>Marketing</span></div>
     <div class="mitem" id="ni-conv" onclick="ir('conv')">{ICO["conv"]}<span>Conversas</span></div>
-    <div class="mitem" id="ni-pipeline" onclick="ir('pipeline')">{ICO["crm"]}<span>Pipeline</span></div>
     <div class="mitem" id="ni-cal" onclick="ir('cal')">{ICO["cal"]}<span>Calendário</span></div>
     <div class="mdiv"></div>
     <div class="mitem" id="ni-perfil" onclick="ir('perfil')">{ICO["user"]}<span>Meu Perfil</span></div>
@@ -735,6 +734,9 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div class="moc" style="border-color:var(--or)"><div class="mot">Marketing</div><div class="mon" id="m-m" style="color:var(--or)">—</div><div class="mol">contatos MKT</div></div>
     <div class="moc" style="border-color:var(--gr)"><div class="mot">Conversas</div><div class="mon" style="color:var(--gr)">6.681</div><div class="mol">contatos totais</div></div>
   </div>
+
+  <div class="sec" style="margin-top:38px;padding-top:30px;border-top:1px solid var(--bd,#e3e3e6)">Pipeline &amp; Previsibilidade</div>
+  <div id="pipeline-root"></div>
 </div>
 
 <!-- CRM -->
@@ -781,11 +783,6 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
   <div class="card"><table class="tbl danger"><thead><tr><th>Operador</th><th>Perdas</th><th>% dos seus leads</th></tr></thead><tbody id="tpd"></tbody></table></div>
   <div class="sec" style="color:var(--rd)">📉 Menos Convertem (Lead → Venda)</div>
   <div class="card"><table class="tbl danger"><thead><tr><th>Operador</th><th>Conv.</th><th>Vendas / Total leads</th></tr></thead><tbody id="tmc"></tbody></table></div>
-</div>
-
-<!-- PIPELINE & PREVISIBILIDADE -->
-<div id="page-pipeline" class="page">
-  <div id="pipeline-root"></div>
 </div>
 
 <!-- CALENDÁRIO -->
@@ -1198,7 +1195,6 @@ function ir(id){{
   $i("psh").classList.remove("vis");
   fecharMenu();
   if(id==="cal") renderCal();
-  if(id==="pipeline") renderPipeline();
   if(id==="cfg"){{ renderPendentes(); renderEquipe(); renderSDRMetas(); renderCorrMetas(); renderMM(); renderMMKpi(); renderEntR(); }}
 }}
 function toggleMenu(){{$i("mov").classList.toggle("vis");$i("psh").classList.remove("vis");}}
@@ -1445,28 +1441,28 @@ async function carregarConfig(){{
 
     # ===== Aba Pipeline & Previsibilidade (estilo + lógica, injetados) =====
     PIPE_STYLE = r"""<style>
-#page-pipeline .pp-grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
-@media(max-width:900px){#page-pipeline .pp-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){#page-pipeline .pp-grid{grid-template-columns:1fr}}
-#page-pipeline .pp-card{background:#fff;border:1px solid #e3e3e6;border-radius:14px;padding:18px}
-#page-pipeline .pp-hero{background:#0071e3;color:#fff;border:none}
-#page-pipeline .pp-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aeaeb2;margin-bottom:8px}
-#page-pipeline .pp-hero .pp-lbl{color:rgba(255,255,255,.7)}
-#page-pipeline .pp-val{font-size:25px;font-weight:700;line-height:1.1;letter-spacing:-.02em}
-#page-pipeline .pp-sub{font-size:12px;color:#6e6e73;margin-top:6px}
-#page-pipeline .pp-hero .pp-sub{color:rgba(255,255,255,.85)}
-#page-pipeline .pp-sec{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#aeaeb2;margin:30px 0 14px}
-#page-pipeline table.pp-tb{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e3e6;border-radius:14px;overflow:hidden}
-#page-pipeline .pp-tb th,#page-pipeline .pp-tb td{text-align:left;padding:12px 16px;font-size:13.5px;border-bottom:1px solid #e3e3e6}
-#page-pipeline .pp-tb th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aeaeb2;background:#fafafc}
-#page-pipeline .pp-tb tr:last-child td{border-bottom:none}
-#page-pipeline .pp-tb td.n,#page-pipeline .pp-tb th.n{text-align:right;font-variant-numeric:tabular-nums}
-#page-pipeline .pp-bar{height:9px;background:#ededf0;border-radius:5px;overflow:hidden;margin:6px 0}
-#page-pipeline .pp-bar>div{height:100%}
-#page-pipeline .pp-mini{height:7px;background:#ededf0;border-radius:4px;overflow:hidden;min-width:90px}
-#page-pipeline .pp-mini>div{height:100%}
-#page-pipeline .pp-note{font-size:12px;color:#6e6e73;margin:6px 0 0}
-#page-pipeline .pp-empty{color:#aeaeb2;font-size:14px;padding:16px;background:#fff;border:1px dashed #e3e3e6;border-radius:14px}
+#pipeline-root .pp-grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){#pipeline-root .pp-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){#pipeline-root .pp-grid{grid-template-columns:1fr}}
+#pipeline-root .pp-card{background:#fff;border:1px solid #e3e3e6;border-radius:14px;padding:18px}
+#pipeline-root .pp-hero{background:#0071e3;color:#fff;border:none}
+#pipeline-root .pp-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aeaeb2;margin-bottom:8px}
+#pipeline-root .pp-hero .pp-lbl{color:rgba(255,255,255,.7)}
+#pipeline-root .pp-val{font-size:25px;font-weight:700;line-height:1.1;letter-spacing:-.02em}
+#pipeline-root .pp-sub{font-size:12px;color:#6e6e73;margin-top:6px}
+#pipeline-root .pp-hero .pp-sub{color:rgba(255,255,255,.85)}
+#pipeline-root .pp-sec{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#aeaeb2;margin:30px 0 14px}
+#pipeline-root table.pp-tb{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e3e6;border-radius:14px;overflow:hidden}
+#pipeline-root .pp-tb th,#pipeline-root .pp-tb td{text-align:left;padding:12px 16px;font-size:13.5px;border-bottom:1px solid #e3e3e6}
+#pipeline-root .pp-tb th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aeaeb2;background:#fafafc}
+#pipeline-root .pp-tb tr:last-child td{border-bottom:none}
+#pipeline-root .pp-tb td.n,#pipeline-root .pp-tb th.n{text-align:right;font-variant-numeric:tabular-nums}
+#pipeline-root .pp-bar{height:9px;background:#ededf0;border-radius:5px;overflow:hidden;margin:6px 0}
+#pipeline-root .pp-bar>div{height:100%}
+#pipeline-root .pp-mini{height:7px;background:#ededf0;border-radius:4px;overflow:hidden;min-width:90px}
+#pipeline-root .pp-mini>div{height:100%}
+#pipeline-root .pp-note{font-size:12px;color:#6e6e73;margin:6px 0 0}
+#pipeline-root .pp-empty{color:#aeaeb2;font-size:14px;padding:16px;background:#fff;border:1px dashed #e3e3e6;border-radius:14px}
 </style>"""
 
     PIPE_JS = r"""
@@ -1603,6 +1599,9 @@ function renderPipeline(){
 
   root.innerHTML=H;
 }
+
+// Renderiza assim que a página carrega (KPIs é a página inicial)
+if($i("pipeline-root")) renderPipeline();
 """
 
     html = html.replace("</head>", PIPE_STYLE + "\n</head>")
