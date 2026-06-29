@@ -95,12 +95,23 @@ def buscar_crm():
         # Extrai operador/responsável
         u = n.get("user")
         operador = u.get("name", "Sem responsável") if isinstance(u, dict) else "Sem responsável"
+        atualizado_em = n.get("updated_at") or ""
+        motivo = ""
+        for _campo in ("deal_lost_reason", "loss_reason", "lost_reason"):
+            _lr = n.get(_campo)
+            if isinstance(_lr, dict) and _lr.get("name"):
+                motivo = _lr["name"]; break
+            if isinstance(_lr, str) and _lr:
+                motivo = _lr; break
         deals_simples.append({
             "stage": etapa_nome,
             "value": valor,
             "created_at": str(criado_em)[:10],
             "closed_at": str(fechado_em)[:10] if fechado_em else None,
+            "updated_at": str(atualizado_em)[:10] if atualizado_em else None,
             "user": operador,
+            "loss_reason": motivo,
+            "name": n.get("name", "") or "",
         })
     return deals_simples
 
@@ -644,6 +655,7 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div class="mitem" id="ni-crm" onclick="ir('crm')">{ICO["crm"]}<span>CRM</span></div>
     <div class="mitem" id="ni-mkt" onclick="ir('mkt')">{ICO["mkt"]}<span>Marketing</span></div>
     <div class="mitem" id="ni-conv" onclick="ir('conv')">{ICO["conv"]}<span>Conversas</span></div>
+    <div class="mitem" id="ni-pipeline" onclick="ir('pipeline')">{ICO["crm"]}<span>Pipeline</span></div>
     <div class="mitem" id="ni-cal" onclick="ir('cal')">{ICO["cal"]}<span>Calendário</span></div>
     <div class="mdiv"></div>
     <div class="mitem" id="ni-perfil" onclick="ir('perfil')">{ICO["user"]}<span>Meu Perfil</span></div>
@@ -771,6 +783,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
   <div class="card"><table class="tbl danger"><thead><tr><th>Operador</th><th>Conv.</th><th>Vendas / Total leads</th></tr></thead><tbody id="tmc"></tbody></table></div>
 </div>
 
+<!-- PIPELINE & PREVISIBILIDADE -->
+<div id="page-pipeline" class="page">
+  <div id="pipeline-root"></div>
+</div>
+
 <!-- CALENDÁRIO -->
 <div id="page-cal" class="page">
   <div class="card"><div class="calh"><button class="caln" onclick="calMov(-1)">‹</button><span class="calt" id="calt">—</span><button class="caln" onclick="calMov(1)">›</button></div><div class="calg" id="calg"></div></div>
@@ -873,7 +890,7 @@ const VGV0={META_VGV}, ENT0={META_ENT};
 const MESES=[{",".join(f'"{m}"' for m in MESES_NOMES)}];
 const DEFAULT_GOALS={MESES_GOALS_DEFAULT};
 const ORDEM=["LEADS","EM CONTATO","AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIAÇÃO","FECHAMENTO"];
-const NOMES={{kpis:"KPIs",crm:"CRM",mkt:"Marketing",conv:"Conversas",cal:"Calendário",perfil:"Meu Perfil",cfg:"Config (Admin)"}};
+const NOMES={{kpis:"KPIs",crm:"CRM",mkt:"Marketing",conv:"Conversas",cal:"Calendário",perfil:"Meu Perfil",cfg:"Config (Admin)",pipeline:"Pipeline"}};
 const ADMIN_EMAIL="{ADMIN_EMAIL}";
 
 // Configurações salvas no GitHub (sincronizam entre aparelhos)
@@ -1181,6 +1198,7 @@ function ir(id){{
   $i("psh").classList.remove("vis");
   fecharMenu();
   if(id==="cal") renderCal();
+  if(id==="pipeline") renderPipeline();
   if(id==="cfg"){{ renderPendentes(); renderEquipe(); renderSDRMetas(); renderCorrMetas(); renderMM(); renderMMKpi(); renderEntR(); }}
 }}
 function toggleMenu(){{$i("mov").classList.toggle("vis");$i("psh").classList.remove("vis");}}
@@ -1419,10 +1437,176 @@ async function carregarConfig(){{
     }}
     filtrar();
     if($i("eq-tbody")){{renderEquipe();renderSDRMetas();renderCorrMetas();renderMM();renderMMKpi();renderEntR();}}
+    if($i("pipeline-root")) renderPipeline();
   }}catch(e){{console.warn("Não consegui carregar config.json:",e);}}
 }}
 </script>
 </body></html>"""
+
+    # ===== Aba Pipeline & Previsibilidade (estilo + lógica, injetados) =====
+    PIPE_STYLE = r"""<style>
+#page-pipeline .pp-grid{display:grid;gap:14px;grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){#page-pipeline .pp-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){#page-pipeline .pp-grid{grid-template-columns:1fr}}
+#page-pipeline .pp-card{background:#fff;border:1px solid #e3e3e6;border-radius:14px;padding:18px}
+#page-pipeline .pp-hero{background:#0071e3;color:#fff;border:none}
+#page-pipeline .pp-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aeaeb2;margin-bottom:8px}
+#page-pipeline .pp-hero .pp-lbl{color:rgba(255,255,255,.7)}
+#page-pipeline .pp-val{font-size:25px;font-weight:700;line-height:1.1;letter-spacing:-.02em}
+#page-pipeline .pp-sub{font-size:12px;color:#6e6e73;margin-top:6px}
+#page-pipeline .pp-hero .pp-sub{color:rgba(255,255,255,.85)}
+#page-pipeline .pp-sec{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#aeaeb2;margin:30px 0 14px}
+#page-pipeline table.pp-tb{width:100%;border-collapse:collapse;background:#fff;border:1px solid #e3e3e6;border-radius:14px;overflow:hidden}
+#page-pipeline .pp-tb th,#page-pipeline .pp-tb td{text-align:left;padding:12px 16px;font-size:13.5px;border-bottom:1px solid #e3e3e6}
+#page-pipeline .pp-tb th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#aeaeb2;background:#fafafc}
+#page-pipeline .pp-tb tr:last-child td{border-bottom:none}
+#page-pipeline .pp-tb td.n,#page-pipeline .pp-tb th.n{text-align:right;font-variant-numeric:tabular-nums}
+#page-pipeline .pp-bar{height:9px;background:#ededf0;border-radius:5px;overflow:hidden;margin:6px 0}
+#page-pipeline .pp-bar>div{height:100%}
+#page-pipeline .pp-mini{height:7px;background:#ededf0;border-radius:4px;overflow:hidden;min-width:90px}
+#page-pipeline .pp-mini>div{height:100%}
+#page-pipeline .pp-note{font-size:12px;color:#6e6e73;margin:6px 0 0}
+#page-pipeline .pp-empty{color:#aeaeb2;font-size:14px;padding:16px;background:#fff;border:1px dashed #e3e3e6;border-radius:14px}
+</style>"""
+
+    PIPE_JS = r"""
+// ====== ABA PIPELINE & PREVISIBILIDADE ======
+const PIPE_EQUIPE={"Corretor":["joão vasconcelos","jonathan vitorino"],"Coordenadora de Plataforma":["giovana","jéssica cararo"],"SDR":["dirlei","nicolas","lucas","adriano"]};
+const PIPE_NOMES={"joão vasconcelos":"João Vasconcelos","jonathan vitorino":"Jonathan Vitorino","giovana":"Giovana","jéssica cararo":"Jéssica Cararo","dirlei":"Dirlei","nicolas":"Nicolas","lucas":"Lucas","adriano":"Adriano"};
+const PIPE_META_VGV=800000,PIPE_META_ENT=100000,PIPE_META_REU=30;
+const PIPE_FUNIL=["lead","contato","agendamento","atendimento","proposta","negocia","fecha","ganho"];
+const PIPE_PESOS={lead:5,contato:10,agendamento:20,atendimento:35,visita:35,proposta:45,negocia:55,fecha:100,ganho:100};
+const PIPE_DIAS_PARADO=14;
+const PIPE_TRANSICAO={mes:"2026-06",negocios:["leonardo cescato rosner"]};
+const PIPE_RANK_REU=PIPE_FUNIL.indexOf("atendimento");
+function ppColor(p){return p>=100?"#28cd41":p>=50?"#ffcc00":"#ff3b30";}
+function ppPeso(s){s=(s||"").toLowerCase();for(const k in PIPE_PESOS){if(s.indexOf(k)>=0)return PIPE_PESOS[k];}return 50;}
+function ppClass(s){s=(s||"").toLowerCase();if(s.indexOf("perdid")>=0||s.indexOf("perda")>=0)return "perdido";if(s.indexOf("fecha")>=0||s.indexOf("ganho")>=0||s.indexOf("ganha")>=0)return "ganho";return "aberto";}
+function ppRank(s){s=(s||"").toLowerCase();if(s.indexOf("perdid")>=0||s.indexOf("perda")>=0)return -1;let r=0;for(let i=0;i<PIPE_FUNIL.length;i++){if(s.indexOf(PIPE_FUNIL[i])>=0)r=i;}return r;}
+function ppMembro(u){const n=(u||"").toLowerCase();for(const p in PIPE_EQUIPE){const arr=PIPE_EQUIPE[p];for(let i=0;i<arr.length;i++){if(n.indexOf(arr[i])>=0)return {kw:arr[i],papel:p};}}return {kw:null,papel:null};}
+function ppMesTag(){const h=new Date();return h.getFullYear()+"-"+String(h.getMonth()+1).padStart(2,"0");}
+function ppDias(ds){if(!ds)return null;const p=ds.split("-");if(p.length<3)return null;const d=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));return Math.floor((new Date()-d)/86400000);}
+function ppMini(pct,cor){cor=cor||ppColor(pct);return '<div class="pp-mini"><div style="width:'+Math.min(pct,100).toFixed(0)+'%;background:'+cor+'"></div></div>';}
+
+function renderPipeline(){
+  const root=$i("pipeline-root"); if(!root) return;
+  const mesTag=ppMesTag(), mesNum=new Date().getMonth()+1;
+  const emTrans=(PIPE_TRANSICAO.mes===mesTag), nomesOk=PIPE_TRANSICAO.negocios;
+  function contaMes(d){
+    if(!d.closed_at||d.closed_at.indexOf(mesTag)!==0) return false;
+    if(emTrans){const nm=(d.name||"").toLowerCase();for(let i=0;i<nomesOk.length;i++){if(nm.indexOf(nomesOk[i])>=0)return true;}return false;}
+    return true;
+  }
+  const abertos=CRM.filter(function(d){return ppClass(d.stage)==="aberto";});
+  const ganhos=CRM.filter(function(d){return ppClass(d.stage)==="ganho";});
+  const perdidos=CRM.filter(function(d){return ppClass(d.stage)==="perdido";});
+  const ganhosMes=ganhos.filter(contaMes);
+
+  const pipeTotal=abertos.reduce(function(a,d){return a+(d.value||0);},0);
+  const etapas={};
+  abertos.forEach(function(d){var w=ppPeso(d.stage);if(!etapas[d.stage])etapas[d.stage]={valor:0,pond:0,n:0,peso:w};etapas[d.stage].valor+=d.value||0;etapas[d.stage].pond+=(d.value||0)*w/100;etapas[d.stage].n++;etapas[d.stage].peso=w;});
+  const pipePond=Object.keys(etapas).reduce(function(a,k){return a+etapas[k].pond;},0);
+  const etapasOrd=Object.keys(etapas).map(function(k){return [k,etapas[k]];}).sort(function(a,b){return a[1].peso-b[1].peso;});
+
+  const nG=ganhos.length,nP=perdidos.length;
+  const winRate=(nG+nP)>0?nG/(nG+nP)*100:0;
+
+  var corte=null;
+  if(PIPE_TRANSICAO.mes){var pp=PIPE_TRANSICAO.mes.split("-");corte=pp[0]+"-"+pp[1]+"-28";}
+  var ciclos=[];
+  ganhos.forEach(function(d){if(d.created_at&&d.closed_at){if(corte&&(d.created_at<=corte||d.closed_at<=corte))return;var c=new Date(d.created_at),f=new Date(d.closed_at);var dd=Math.floor((f-c)/86400000);if(dd>=0)ciclos.push(dd);}});
+  var cicloMedio,cicloFonte;
+  if(ciclos.length>=5){cicloMedio=Math.round(ciclos.reduce(function(a,b){return a+b;},0)/ciclos.length);cicloFonte="calculado";}
+  else{cicloMedio=60;cicloFonte="informado";}
+
+  const km=(getKpiMetas()[mesNum])||{vgv:VGV0/12,ent:ENT0/12};
+  const er=getEntRealizada();
+  const metaVgv=km.vgv||VGV0/12, metaEnt=km.ent||ENT0/12;
+  const vgvMes=ganhosMes.reduce(function(a,d){return a+(d.value||0);},0);
+  const entMes=parseFloat(er[mesNum])||0;
+  const pctV=metaVgv>0?vgvMes/metaVgv*100:0, pctE=metaEnt>0?entMes/metaEnt*100:0;
+  const hh=new Date(), diaAtual=hh.getDate(), diasMes=new Date(hh.getFullYear(),hh.getMonth()+1,0).getDate();
+  const pctTempo=diaAtual/diasMes*100;
+
+  const membros={};
+  for(const p in PIPE_EQUIPE){var arr=PIPE_EQUIPE[p];for(let i=0;i<arr.length;i++){var kw=arr[i];membros[kw]={papel:p,nome:PIPE_NOMES[kw]||kw,vgvMes:0,pipePond:0,reunioes:0};}}
+  CRM.forEach(function(d){
+    var m=ppMembro(d.user); if(!m.kw) return;
+    var cl=ppClass(d.stage);
+    if(cl==="aberto")membros[m.kw].pipePond+=(d.value||0)*ppPeso(d.stage)/100;
+    if(cl==="ganho"&&contaMes(d))membros[m.kw].vgvMes+=d.value||0;
+    if(ppRank(d.stage)>=PIPE_RANK_REU && !emTrans && (d.created_at||"").indexOf(mesTag)===0)membros[m.kw].reunioes++;
+  });
+  var corretores=Object.keys(membros).map(function(k){return [k,membros[k]];}).filter(function(e){return e[1].papel!=="SDR";});
+  var sdrs=Object.keys(membros).map(function(k){return [k,membros[k]];}).filter(function(e){return e[1].papel==="SDR";});
+
+  var motivos={};
+  perdidos.forEach(function(d){var m=d.loss_reason||"Não informado";if(!motivos[m])motivos[m]={n:0,valor:0};motivos[m].n++;motivos[m].valor+=d.value||0;});
+  var motivosOrd=Object.keys(motivos).map(function(k){return [k,motivos[k]];}).sort(function(a,b){return b[1].n-a[1].n;});
+
+  var parados=[];
+  abertos.forEach(function(d){var dd=ppDias(d.updated_at||d.created_at);if(dd!==null&&dd>PIPE_DIAS_PARADO){var o={};for(var k in d)o[k]=d[k];o.dias=dd;parados.push(o);}});
+  parados.sort(function(a,b){return (b.value||0)-(a.value||0);});
+  var valorParado=parados.reduce(function(a,d){return a+(d.value||0);},0);
+
+  var cob=metaVgv>0?pipePond/metaVgv*100:0;
+  var H="";
+  H+='<div class="pp-grid">';
+  H+='<div class="pp-card pp-hero"><div class="pp-lbl">Previsão de fechamento (pipeline ponderado)</div><div class="pp-val">'+R(pipePond)+'</div><div class="pp-bar" style="background:rgba(255,255,255,.25)"><div style="width:'+Math.min(cob,100).toFixed(0)+'%;background:#fff"></div></div><div class="pp-sub">'+cob.toFixed(0)+'% da meta ('+R0(metaVgv)+') — de '+R(pipeTotal)+' em aberto</div></div>';
+  H+='<div class="pp-card"><div class="pp-lbl">Win Rate</div><div class="pp-val" style="color:'+ppColor(winRate)+'">'+winRate.toFixed(0)+'%</div><div class="pp-sub">'+nG+' ganhos / '+nP+' perdidos</div></div>';
+  H+='<div class="pp-card"><div class="pp-lbl">Ciclo de venda médio</div><div class="pp-val">'+cicloMedio+' dias</div><div class="pp-sub">'+(cicloFonte==="informado"?"informado":"calculado ("+ciclos.length+" negócios)")+'</div></div>';
+  H+='<div class="pp-card"><div class="pp-lbl">Negócios em aberto</div><div class="pp-val">'+abertos.length+'</div><div class="pp-sub">'+R(pipeTotal)+' na esteira</div></div>';
+  H+='</div>';
+
+  H+='<div class="pp-sec">Ritmo do mês (pacing)</div>';
+  H+='<div class="pp-card"><div class="pp-lbl">'+MESES[mesNum-1]+' — dia '+diaAtual+' de '+diasMes+' ('+pctTempo.toFixed(0)+'% do mês)</div>';
+  H+='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:6px"><span>VGV realizado</span><b style="font-size:18px;color:'+ppColor(pctV)+'">'+R(vgvMes)+'</b></div>';
+  H+='<div class="pp-bar"><div style="width:'+Math.min(pctV,100).toFixed(1)+'%;background:'+ppColor(pctV)+'"></div></div>';
+  H+='<div class="pp-sub">'+pctV.toFixed(0)+'% da meta de '+R0(metaVgv)+'</div>';
+  H+='<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px"><span>Entrada realizada</span><b style="font-size:18px;color:'+ppColor(pctE)+'">'+R(entMes)+'</b></div>';
+  H+='<div class="pp-bar"><div style="width:'+Math.min(pctE,100).toFixed(1)+'%;background:'+ppColor(pctE)+'"></div></div>';
+  H+='<div class="pp-sub">'+pctE.toFixed(0)+'% da meta de '+R0(metaEnt)+'</div></div>';
+
+  H+='<div class="pp-sec">Pipeline ponderado por etapa</div>';
+  if(etapasOrd.length){
+    var maxP=Math.max.apply(null,etapasOrd.map(function(e){return e[1].pond;}).concat([1]))||1;
+    var rows="";
+    etapasOrd.forEach(function(e){var et=e[0],v=e[1];rows+='<tr><td><strong>'+et+'</strong></td><td class="n">'+v.peso.toFixed(0)+'%</td><td class="n">'+v.n+'</td><td class="n">'+R(v.valor)+'</td><td class="n" style="font-weight:700">'+R(v.pond)+'</td><td style="width:150px">'+ppMini(v.pond/maxP*100,"#0071e3")+'</td></tr>';});
+    H+='<table class="pp-tb"><thead><tr><th>Etapa</th><th class="n">Peso</th><th class="n">Qtd</th><th class="n">Valor bruto</th><th class="n">Ponderado</th><th>Peso visual</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  } else { H+='<div class="pp-empty">Nenhum negócio em aberto.</div>'; }
+
+  H+='<div class="pp-sec">Metas por corretor e coordenadora</div>';
+  var rc="";
+  corretores.sort(function(a,b){return b[1].vgvMes-a[1].vgvMes;}).forEach(function(e){var m=e[1];var pct=PIPE_META_VGV>0?m.vgvMes/PIPE_META_VGV*100:0;rc+='<tr><td><strong>'+m.nome+'</strong><div style="font-size:11px;color:#6e6e73">'+m.papel+'</div></td><td class="n">'+R(m.vgvMes)+'</td><td class="n">'+R0(PIPE_META_VGV)+'</td><td class="n" style="color:'+ppColor(pct)+';font-weight:700">'+pct.toFixed(0)+'%</td><td style="width:140px">'+ppMini(pct)+'</td><td class="n">'+R(m.pipePond)+'</td></tr>';});
+  H+='<table class="pp-tb"><thead><tr><th>Corretor / Coordenadora</th><th class="n">VGV no mês</th><th class="n">Meta</th><th class="n">%</th><th>Progresso</th><th class="n">Previsão</th></tr></thead><tbody>'+rc+'</tbody></table>';
+
+  H+='<div class="pp-sec">Reuniões por SDR</div>';
+  var rs="";
+  sdrs.sort(function(a,b){return b[1].reunioes-a[1].reunioes;}).forEach(function(e){var m=e[1];var pct=PIPE_META_REU>0?m.reunioes/PIPE_META_REU*100:0;rs+='<tr><td><strong>'+m.nome+'</strong></td><td class="n">'+m.reunioes+'</td><td class="n">'+PIPE_META_REU+'</td><td class="n" style="color:'+ppColor(pct)+';font-weight:700">'+pct.toFixed(0)+'%</td><td style="width:160px">'+ppMini(pct)+'</td></tr>';});
+  H+='<table class="pp-tb"><thead><tr><th>SDR</th><th class="n">Reuniões no mês</th><th class="n">Meta</th><th class="n">%</th><th>Progresso</th></tr></thead><tbody>'+rs+'</tbody></table>';
+
+  H+='<div class="pp-sec">Motivos de perda</div>';
+  if(motivosOrd.length){
+    var totP=motivosOrd.reduce(function(a,e){return a+e[1].n;},0)||1;
+    var rm="";
+    motivosOrd.slice(0,12).forEach(function(e){rm+='<tr><td>'+e[0]+'</td><td class="n">'+e[1].n+'</td><td class="n">'+(e[1].n/totP*100).toFixed(0)+'%</td><td class="n">'+R(e[1].valor)+'</td></tr>';});
+    H+='<table class="pp-tb"><thead><tr><th>Motivo</th><th class="n">Qtd</th><th class="n">%</th><th class="n">Valor</th></tr></thead><tbody>'+rm+'</tbody></table>';
+  } else { H+='<div class="pp-empty">Nenhuma perda registrada (ou sem motivo preenchido).</div>'; }
+
+  H+='<div class="pp-sec">Negócios parados (+'+PIPE_DIAS_PARADO+' dias sem movimento)</div>';
+  if(parados.length){
+    var rp="";
+    parados.slice(0,25).forEach(function(d){var cor=d.dias>30?"#ff3b30":"#ff9500";rp+='<tr><td>'+d.stage+'</td><td>'+(d.user||"—")+'</td><td class="n">'+R(d.value||0)+'</td><td class="n"><span style="color:'+cor+';font-weight:700">'+d.dias+' dias</span></td></tr>';});
+    H+='<table class="pp-tb"><thead><tr><th>Etapa</th><th>Responsável</th><th class="n">Valor</th><th class="n">Parado há</th></tr></thead><tbody>'+rp+'</tbody></table>';
+    if(parados.length>25)H+='<p class="pp-note">Mostrando os 25 maiores de '+parados.length+' ('+R(valorParado)+' no total).</p>';
+  } else { H+='<div class="pp-empty">Nenhum negócio parado há mais de '+PIPE_DIAS_PARADO+' dias.</div>'; }
+
+  root.innerHTML=H;
+}
+"""
+
+    html = html.replace("</head>", PIPE_STYLE + "\n</head>")
+    html = html.replace("</script>\n</body></html>", "\n" + PIPE_JS + "\n</script>\n</body></html>")
 
     with open("dashboard_unificado.html","w",encoding="utf-8") as f:
         f.write(html)
