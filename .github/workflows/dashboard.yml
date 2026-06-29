@@ -45,9 +45,13 @@ jobs:
           TOKEN_CRM: ${{ secrets.TOKEN_CRM }}
         run: python dashboard_pipeline.py
 
+      - name: Desligar Jekyll (cria .nojekyll)
+        run: touch .nojekyll
+
       - name: Publicar no GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .
           keep_files: true
+          enable_jekyll: false
