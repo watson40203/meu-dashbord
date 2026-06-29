@@ -38,8 +38,18 @@ NOMES_DISPLAY = {
 META_VGV_PESSOA   = 800000.0    # meta de VGV por corretor/coordenadora
 META_ENT_PESSOA   = 100000.0    # meta de entrada por corretor/coordenadora
 META_REUNIOES_SDR = 30          # meta de reuniões realizadas por SDR
-META_MACRO_VGV    = 2200000.0   # meta macro de VGV (mês)
-META_MACRO_ENT    = 200000.0    # meta macro de entrada (mês)
+META_MACRO_VGV    = 3200000.0   # meta macro de VGV (mês) — meta da equipe
+META_MACRO_ENT    = 300000.0    # meta macro de entrada (mês) — meta da equipe
+
+# Números de marketing/conversas exibidos no dashboard KPIs (index.html).
+# Por enquanto são fixos. Para deixar ao vivo, ligue-os ao dashboard_api.py
+# (buscar_marketing / buscar_conversas) e atualize estes valores.
+LEADS_MARKETING   = 4125
+LEADS_CRM         = 6300
+
+# Template do dashboard KPIs (precisa estar no repo, ao lado deste arquivo)
+KPIS_TEMPLATE     = "index_template.html"
+KPIS_OUTPUT       = "index.html"
 
 CICLO_VENDA_PADRAO = 60         # dias (usado enquanto não há negócios novos suficientes)
 
@@ -302,6 +312,70 @@ td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
 def barra(pct, cor=None):
     cor = cor or cor_pct(pct)
     return f'<div class="minibar"><div style="width:{min(pct,100):.0f}%;background:{cor}"></div></div>'
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GERADOR DO index.html (DASHBOARD KPIs — design novo, tema claro)
+# Injeta os dados ao vivo no template index_template.html.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
+                     abertos, ganhos, n_ganho, corretores):
+    """Monta o DADOS e grava o index.html a partir do index_template.html."""
+    import json
+
+    if not os.path.exists(KPIS_TEMPLATE):
+        print(f"AVISO: {KPIS_TEMPLATE} não encontrado — index.html não gerado.")
+        return None
+
+    # Ticket médio = receita fechada total / nº de ganhos
+    total_ganho = sum(d.get("value", 0) for d in ganhos)
+    ticket = (total_ganho / n_ganho) if n_ganho else 0.0
+
+    # Corretores no formato do template (ordenado por VGV no mês)
+    corretores_fmt = []
+    for kw, m in corretores:
+        corretores_fmt.append({
+            "nome": m.get("nome", ""),
+            "cargo": m.get("papel", ""),
+            "vgv": round(m.get("vgv_mes", 0), 2),
+            "meta": round(META_VGV_PESSOA, 2),
+            "previsao": round(m.get("pipe_pond", 0), 2),
+        })
+    corretores_fmt.sort(key=lambda c: c["vgv"], reverse=True)
+
+    carimbo = hoje.strftime("%d/%m/%Y às %H:%M")
+    dados = {
+        "buscadoEm": carimbo,
+        "atualizadoEm": carimbo,
+        "dataFiltro": hoje.strftime("%d/%m/%Y"),
+
+        "metaVGV": round(META_MACRO_VGV, 2),
+        "metaEntrada": round(META_MACRO_ENT, 2),
+        "realizadoVGV": round(vgv_mes, 2),
+        "realizadoEntrada": round(ent_mes, 2),
+
+        "receitaFechada": round(vgv_mes, 2),
+        "pipelineAtivo": round(pipe_total, 2),
+        "previsaoPonderada": round(pipe_pond, 2),
+        "negociacoesAtivas": len(abertos),
+        "leadsMarketing": LEADS_MARKETING,
+        "leadsCRM": LEADS_CRM,
+        "ticketMedio": round(ticket, 2),
+
+        "corretores": corretores_fmt,
+    }
+
+    template = open(KPIS_TEMPLATE, encoding="utf-8").read()
+    if "__DADOS_JSON__" not in template:
+        print("AVISO: index_template.html sem o marcador __DADOS_JSON__.")
+        return None
+
+    html = template.replace("__DADOS_JSON__", json.dumps(dados, ensure_ascii=False))
+    with open(KPIS_OUTPUT, "w", encoding="utf-8") as f:
+        f.write(html)
+    print(f"OK: {KPIS_OUTPUT} gerado com dados ao vivo do RD ({len(html)} bytes)")
+    return KPIS_OUTPUT
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -597,6 +671,20 @@ def gerar_dashboard(deals, cfg):
     with open("dashboard_pipeline.html", "w", encoding="utf-8") as f:
         f.write(html)
     print(f"OK: dashboard_pipeline.html gerado ({len(html)} bytes)")
+
+    # ── Dashboard KPIs (index.html — design novo, publicado no GitHub Pages) ──
+    gerar_index_kpis(
+        hoje=hoje,
+        vgv_mes=vgv_mes,
+        ent_mes=ent_mes,
+        pipe_total=pipe_total,
+        pipe_pond=pipe_pond,
+        abertos=abertos,
+        ganhos=ganhos,
+        n_ganho=n_ganho,
+        corretores=corretores,
+    )
+
     return html
 
 
