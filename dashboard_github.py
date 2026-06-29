@@ -341,12 +341,15 @@ def gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees):
     MESES_NOMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
     MESES_GOALS_DEFAULT = json.dumps({str(i+1): {"vgv": round(META_VGV/12,2), "ent": round(META_ENT/12,2)} for i in range(12)})
 
-    _MESES_DEFAULT = {str(i+1): {"vgv": round(META_VGV/12,2), "ent": round(META_ENT/12,2)} for i in range(12)}
+    _TIME_DEFAULT = {str(i+1): {"vgv": round(META_VGV/12,2), "ent": round(META_ENT/12,2)} for i in range(12)}
+    _KPI_DEFAULT  = {str(i+1): {"vgv": 2095240.14, "ent": 220000.0} for i in range(12)}
+    _ENTR_DEFAULT = {str(i+1): 0 for i in range(12)}
     CONFIG_DEFAULT = json.dumps({
-        "equipe":    {},
-        "sdrMetas":  {},
-        "kpiMetas":  dict(_MESES_DEFAULT),
-        "timeMetas": dict(_MESES_DEFAULT),
+        "equipe":       {},
+        "sdrMetas":     {},
+        "kpiMetas":     _KPI_DEFAULT,
+        "timeMetas":    _TIME_DEFAULT,
+        "entRealizada": _ENTR_DEFAULT,
     })
 
 
@@ -839,6 +842,11 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
   <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Metas que aparecem nos <strong>cartões de KPI no topo</strong> do dashboard. São independentes da divisão por time.</div>
   <div class="mm-grid" id="kpi-grid"></div>
 
+  <!-- Entrada Realizada (preenchida à mão) -->
+  <div class="sec" style="margin-top:28px">Entrada Realizada por Mês (R$)</div>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Quanto de entrada <strong>já foi realizado</strong> em cada mês. Preencha aqui o realizado das entradas — ele alimenta o cartão <strong>Meta Entrada</strong> no topo. <em>(O VGV realizado vem automático do CRM.)</em></div>
+  <div class="mm-grid" id="entr-grid"></div>
+
   <button class="cbtn" onclick="salvarTudo()" style="margin-top:20px;max-width:320px">Gerar configuração para salvar</button>
 
   <div id="cfg-save-box" style="display:none;margin-top:18px">
@@ -968,7 +976,7 @@ function initUI(){{
   // Pendentes
   renderPendentes();
   // Metas mensais
-  renderMM();renderMMKpi();
+  renderMM();renderMMKpi();renderEntR();
   // Preenche perfil
   $i("pf-nome").value=currentUser?.name||"";
   $i("pf-email").value=currentUser?.email||"";
@@ -1018,6 +1026,7 @@ function getEquipe(){{return CONFIG.equipe||{{}};}}
 function saveEquipe(e){{CONFIG.equipe=e;}}
 function getTimeMetas(){{return CONFIG.timeMetas||DEFAULT_GOALS;}}
 function getKpiMetas(){{return CONFIG.kpiMetas||DEFAULT_GOALS;}}
+function getEntRealizada(){{return CONFIG.entRealizada||{{}};}}
 
 function renderEquipe(){{
   const ops=getOperadores(),eq=getEquipe(),tb=$i("eq-tbody");tb.innerHTML="";
@@ -1109,6 +1118,17 @@ function renderMMKpi(){{
   }}
 }}
 
+function renderEntR(){{
+  const er=getEntRealizada(),g=$i("entr-grid");if(!g)return;g.innerHTML="";
+  for(let i=1;i<=12;i++){{
+    g.innerHTML+=`<div class="mm-card">
+      <div class="mm-mes">${{MESES[i-1].substring(0,3)}}</div>
+      <div class="mm-lbl">Entrada R$</div>
+      <input type="number" id="entr-${{i}}" class="mm-inp" value="${{er[i]||0}}" step="1000">
+    </div>`;
+  }}
+}}
+
 function salvarTudo(){{
   atualizarEquipe();  // atualiza CONFIG.equipe a partir dos selects
   // Metas de agendamento dos SDRs
@@ -1119,6 +1139,8 @@ function salvarTudo(){{
   const tm={{}};for(let i=1;i<=12;i++){{tm[i]={{vgv:parseFloat($i("mm-vgv-"+i)?.value)||0,ent:parseFloat($i("mm-ent-"+i)?.value)||0}};}}CONFIG.timeMetas=tm;
   // Metas dos KPIs (cartões do topo)
   const km={{}};for(let i=1;i<=12;i++){{km[i]={{vgv:parseFloat($i("kpi-vgv-"+i)?.value)||0,ent:parseFloat($i("kpi-ent-"+i)?.value)||0}};}}CONFIG.kpiMetas=km;
+  // Entrada realizada por mês (preenchida à mão)
+  const erM={{}};for(let i=1;i<=12;i++){{erM[i]=parseFloat($i("entr-"+i)?.value)||0;}}CONFIG.entRealizada=erM;
   // Gera o texto pra colar no GitHub
   $i("cfg-json").value=JSON.stringify(CONFIG,null,2);
   $i("cfg-save-box").style.display="block";
@@ -1159,7 +1181,7 @@ function ir(id){{
   $i("psh").classList.remove("vis");
   fecharMenu();
   if(id==="cal") renderCal();
-  if(id==="cfg"){{ renderPendentes(); renderEquipe(); renderSDRMetas(); renderCorrMetas(); renderMM(); renderMMKpi(); }}
+  if(id==="cfg"){{ renderPendentes(); renderEquipe(); renderSDRMetas(); renderCorrMetas(); renderMM(); renderMMKpi(); renderEntR(); }}
 }}
 function toggleMenu(){{$i("mov").classList.toggle("vis");$i("psh").classList.remove("vis");}}
 function fecharMenu(){{$i("mov").classList.remove("vis");}}
@@ -1192,10 +1214,11 @@ function ok(ds,i,f){{
 const R=v=>"R$ "+v.toLocaleString("pt-BR",{{minimumFractionDigits:2,maximumFractionDigits:2}});
 const R0=v=>"R$ "+Math.round(v).toLocaleString("pt-BR");
 function ord(e){{const n=e.toUpperCase();for(let i=0;i<ORDEM.length;i++) if(n.includes(ORDEM[i])) return i; return 99;}}
+function barColor(p){{return p>=100?"var(--gr)":p>=50?"#ffcc00":"var(--rd)";}}
 function metas(){{
-  const goals=getKpiMetas(), mes=new Date().getMonth()+1;
+  const goals=getKpiMetas(), er=getEntRealizada(), mes=new Date().getMonth()+1;
   const g=goals[mes]||{{vgv:VGV0/12,ent:ENT0/12}};
-  return{{vgv:g.vgv||VGV0/12,ent:g.ent||ENT0/12,entR:parseFloat(localStorage.getItem("im_entr"))||0}};
+  return{{vgv:g.vgv||VGV0/12,ent:g.ent||ENT0/12,entR:parseFloat(er[mes])||0}};
 }}
 
 // ── FILTRAR ────────────────────────────────────────────────────
@@ -1269,8 +1292,8 @@ function filtrar(){{
   $i("p-vp-sub").textContent=baseLeads.toLocaleString("pt-BR")+" × "+convPct+"% ÷ 12";
   $i("p-rp").textContent=rp>0?R0(rp):"—";
   $i("p-rp-sub").textContent=vp2.toFixed(1)+" vendas × "+R0(tkGlobal)+" ticket";
-  $i("vr").textContent=R(rec);$i("vd").textContent="de "+R(vgv);$i("vb").style.width=pVgv.toFixed(1)+"%";$i("vp").textContent=pVgv.toFixed(1)+"% atingido";
-  $i("er").textContent=R(entR);$i("ed").textContent="de "+R(ent);$i("eb").style.width=pEnt.toFixed(1)+"%";$i("ep").textContent=pEnt.toFixed(1)+"% atingido";
+  $i("vr").textContent=R(rec);$i("vd").textContent="de "+R(vgv);$i("vb").style.width=pVgv.toFixed(1)+"%";$i("vb").style.background=barColor(pVgv);$i("vp").textContent=pVgv.toFixed(1)+"% atingido";
+  $i("er").textContent=R(entR);$i("ed").textContent="de "+R(ent);$i("eb").style.width=pEnt.toFixed(1)+"%";$i("eb").style.background=barColor(pEnt);$i("ep").textContent=pEnt.toFixed(1)+"% atingido";
   $i("m-c").textContent=lds.toLocaleString("pt-BR");$i("m-m").textContent=mf.length.toLocaleString("pt-BR");
 
   // CRM
@@ -1388,13 +1411,14 @@ async function carregarConfig(){{
     if(!r.ok) return;  // arquivo ainda não existe — usa os padrões
     const data=await r.json();
     if(data&&typeof data==="object"){{
-      if(data.equipe)    CONFIG.equipe=data.equipe;
-      if(data.sdrMetas)  CONFIG.sdrMetas=data.sdrMetas;
-      if(data.kpiMetas)  CONFIG.kpiMetas=data.kpiMetas;
-      if(data.timeMetas) CONFIG.timeMetas=data.timeMetas;
+      if(data.equipe)       CONFIG.equipe=data.equipe;
+      if(data.sdrMetas)     CONFIG.sdrMetas=data.sdrMetas;
+      if(data.kpiMetas)     CONFIG.kpiMetas=data.kpiMetas;
+      if(data.timeMetas)    CONFIG.timeMetas=data.timeMetas;
+      if(data.entRealizada) CONFIG.entRealizada=data.entRealizada;
     }}
     filtrar();
-    if($i("eq-tbody")){{renderEquipe();renderSDRMetas();renderCorrMetas();renderMM();renderMMKpi();}}
+    if($i("eq-tbody")){{renderEquipe();renderSDRMetas();renderCorrMetas();renderMM();renderMMKpi();renderEntR();}}
   }}catch(e){{console.warn("Não consegui carregar config.json:",e);}}
 }}
 </script>
