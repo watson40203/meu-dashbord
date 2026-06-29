@@ -48,6 +48,15 @@ TOKEN_CONVERSAS = os.environ.get("TOKEN_CONVERSAS", "")
 META_VGV_PADRAO = 2095240.14
 META_ENTRADA_PADRAO = 255239.40
 
+# ── Sincronização das configurações via GitHub ────────────────────────────────
+# Detecta dono/repo automaticamente quando roda no GitHub Actions; se rodar local,
+# usa os valores abaixo como padrão.
+_GH_REPO_FULL = os.environ.get("GITHUB_REPOSITORY", "watson40203/meu-dashbord")
+GITHUB_OWNER  = _GH_REPO_FULL.split("/")[0]
+GITHUB_REPO   = _GH_REPO_FULL.split("/")[-1]
+GITHUB_BRANCH = os.environ.get("GITHUB_REF_NAME", "main")
+CONFIG_FILE   = "config.json"
+
 # Ícones SVG estilo Apple SF Symbols
 ICO_HOME  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z"/><path d="M12 5.432l8.159 8.159v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625A1.875 1.875 0 013.75 19.875v-6.198L12 5.432z"/></svg>'
 ICO_CRM   = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="26" height="26"><path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z"/></svg>'
@@ -331,6 +340,14 @@ def gerar_dashboard(crm_deals, mkt_data, conv_total, conv_employees):
 
     MESES_NOMES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
     MESES_GOALS_DEFAULT = json.dumps({str(i+1): {"vgv": round(META_VGV/12,2), "ent": round(META_ENT/12,2)} for i in range(12)})
+
+    _MESES_DEFAULT = {str(i+1): {"vgv": round(META_VGV/12,2), "ent": round(META_ENT/12,2)} for i in range(12)}
+    CONFIG_DEFAULT = json.dumps({
+        "equipe":    {},
+        "sdrMetas":  {},
+        "kpiMetas":  dict(_MESES_DEFAULT),
+        "timeMetas": dict(_MESES_DEFAULT),
+    })
 
 
     html = f"""<!DOCTYPE html>
@@ -812,13 +829,30 @@ body{{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica N
     <div style="color:var(--t3);font-size:14px;padding:8px 0">Nenhum Corretor ou Coordenadora definido ainda.</div>
   </div>
 
-  <!-- Metas mensais globais -->
-  <div class="sec">Metas Mensais Globais — VGV e Entrada (R$)</div>
-  <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Total da empresa por mês. Dividido automaticamente entre os Corretores e Coordenadoras.</div>
+  <!-- Metas do TIME (divididas entre corretores/coordenadoras) -->
+  <div class="sec">Metas do Time — VGV e Entrada por Mês (R$)</div>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Total por mês que é <strong>dividido igualmente</strong> entre os Corretores e Coordenadoras. <em>Não afeta os cartões de KPI do topo.</em></div>
   <div class="mm-grid" id="mm-grid"></div>
 
-  <button class="cbtn" onclick="salvarTudo()" style="margin-top:16px;max-width:260px">Salvar todas as configurações</button>
-  <div id="mm-ok" style="color:var(--gr);font-weight:700;font-size:13px;margin-top:10px;display:none">✅ Salvo!</div>
+  <!-- Metas dos KPIs (cartões do topo) -->
+  <div class="sec" style="margin-top:28px">Metas dos KPIs — VGV e Entrada por Mês (R$)</div>
+  <div style="font-size:12px;color:var(--t2);margin-bottom:12px">Metas que aparecem nos <strong>cartões de KPI no topo</strong> do dashboard. São independentes da divisão por time.</div>
+  <div class="mm-grid" id="kpi-grid"></div>
+
+  <button class="cbtn" onclick="salvarTudo()" style="margin-top:20px;max-width:320px">Gerar configuração para salvar</button>
+
+  <div id="cfg-save-box" style="display:none;margin-top:18px">
+    <div style="font-size:13px;color:var(--t2);margin-bottom:10px;line-height:1.6">
+      <strong>Quase lá!</strong> Para salvar e sincronizar em todos os aparelhos:<br>
+      1) Clique em <strong>Copiar</strong>.&nbsp;&nbsp; 2) Clique em <strong>Abrir config.json no GitHub</strong>.&nbsp;&nbsp; 3) Apague tudo que estiver lá, cole o novo conteúdo e clique em <strong>Commit changes</strong>.&nbsp;&nbsp; 4) Em ~1–2 min atualiza em todos os aparelhos.
+    </div>
+    <textarea id="cfg-json" readonly style="width:100%;height:200px;font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1px solid var(--bd);border-radius:10px;padding:12px;background:#f9f9fb;color:#1d1d1f;box-sizing:border-box;resize:vertical"></textarea>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;align-items:center">
+      <button class="cbtn" onclick="copiarConfig()" style="max-width:140px">Copiar</button>
+      <a class="cbtn" href="https://github.com/{GITHUB_OWNER}/{GITHUB_REPO}/edit/{GITHUB_BRANCH}/{CONFIG_FILE}" target="_blank" rel="noopener" style="max-width:280px;text-decoration:none;text-align:center;display:inline-flex;align-items:center;justify-content:center">Abrir config.json no GitHub →</a>
+      <span id="cfg-copy-ok" style="display:none;color:var(--gr);font-weight:700;font-size:13px">Copiado!</span>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -833,6 +867,10 @@ const DEFAULT_GOALS={MESES_GOALS_DEFAULT};
 const ORDEM=["LEADS","EM CONTATO","AGENDAMENTO","ATENDIMENTO REALIZADO","NEGOCIAÇÃO","FECHAMENTO"];
 const NOMES={{kpis:"KPIs",crm:"CRM",mkt:"Marketing",conv:"Conversas",cal:"Calendário",perfil:"Meu Perfil",cfg:"Config (Admin)"}};
 const ADMIN_EMAIL="{ADMIN_EMAIL}";
+
+// Configurações salvas no GitHub (sincronizam entre aparelhos)
+const CONFIG_FILE="{CONFIG_FILE}";
+let CONFIG={CONFIG_DEFAULT};
 
 
 let periodo="tudo", calAno=new Date().getFullYear(), calMes=new Date().getMonth();
@@ -930,7 +968,7 @@ function initUI(){{
   // Pendentes
   renderPendentes();
   // Metas mensais
-  renderMM();
+  renderMM();renderMMKpi();
   // Preenche perfil
   $i("pf-nome").value=currentUser?.name||"";
   $i("pf-email").value=currentUser?.email||"";
@@ -976,9 +1014,10 @@ function aprovar(id,ok2){{
 function getOperadores(){{return [...new Set(CRM.map(d=>d.user||"").filter(Boolean))].sort();}}
 
 // Equipe: papéis
-function getEquipe(){{return JSON.parse(localStorage.getItem("im_equipe")||"{{}}");}}
-function saveEquipe(e){{localStorage.setItem("im_equipe",JSON.stringify(e));}}
-function getMetas(){{return JSON.parse(localStorage.getItem("im_goals_"+new Date().getFullYear())||JSON.stringify(DEFAULT_GOALS));}}
+function getEquipe(){{return CONFIG.equipe||{{}};}}
+function saveEquipe(e){{CONFIG.equipe=e;}}
+function getTimeMetas(){{return CONFIG.timeMetas||DEFAULT_GOALS;}}
+function getKpiMetas(){{return CONFIG.kpiMetas||DEFAULT_GOALS;}}
 
 function renderEquipe(){{
   const ops=getOperadores(),eq=getEquipe(),tb=$i("eq-tbody");tb.innerHTML="";
@@ -1002,7 +1041,7 @@ function atualizarEquipe(){{
 }}
 
 // SDR metas
-function getSDRMetas(){{return JSON.parse(localStorage.getItem("im_sdr_metas")||"{{}}");}}
+function getSDRMetas(){{return CONFIG.sdrMetas||{{}};}}
 function renderSDRMetas(){{
   const eq=getEquipe(),sdrs=Object.entries(eq).filter(([,v])=>v.role==="sdr").map(([k])=>k);
   const metas=getSDRMetas(),wrap=$i("sdr-metas-wrap");wrap.innerHTML="";
@@ -1020,7 +1059,7 @@ function renderSDRMetas(){{
 
 // Corretor/Coordenadora — meta dividida igualmente
 function renderCorrMetas(){{
-  const eq=getEquipe(),goals=getMetas();
+  const eq=getEquipe(),goals=getTimeMetas();
   const corr=Object.entries(eq).filter(([,v])=>v.role==="corretor"||v.role==="coordenadora").map(([k,v])=>{{return{{name:k,tipo:v.role}};}});
   const wrap=$i("corr-metas-wrap");wrap.innerHTML="";
   if(!corr.length){{wrap.innerHTML='<div style="color:var(--t3);font-size:14px;padding:8px 0">Nenhum Corretor ou Coordenadora definido.</div>';return;}}
@@ -1043,7 +1082,7 @@ function renderCorrMetas(){{
 }}
 
 function renderMM(){{
-  const goals=getMetas(),g=$i("mm-grid");g.innerHTML="";
+  const goals=getTimeMetas(),g=$i("mm-grid");g.innerHTML="";
   for(let i=1;i<=12;i++){{
     const m=goals[i]||{{vgv:0,ent:0}};
     g.innerHTML+=`<div class="mm-card">
@@ -1056,19 +1095,43 @@ function renderMM(){{
   }}
 }}
 
+function renderMMKpi(){{
+  const goals=getKpiMetas(),g=$i("kpi-grid");if(!g)return;g.innerHTML="";
+  for(let i=1;i<=12;i++){{
+    const m=goals[i]||{{vgv:0,ent:0}};
+    g.innerHTML+=`<div class="mm-card">
+      <div class="mm-mes">${{MESES[i-1].substring(0,3)}}</div>
+      <div class="mm-lbl">VGV</div>
+      <input type="number" id="kpi-vgv-${{i}}" class="mm-inp" value="${{m.vgv}}" step="1000">
+      <div class="mm-lbl">Entrada</div>
+      <input type="number" id="kpi-ent-${{i}}" class="mm-inp" value="${{m.ent}}" step="1000">
+    </div>`;
+  }}
+}}
+
 function salvarTudo(){{
-  atualizarEquipe();
-  // SDR metas
-  const eq=getEquipe(),sdrs=Object.entries(eq).filter(([,v])=>v.role==="sdr").map(([k])=>k);
-  const sdrM=getSDRMetas();
-  sdrs.forEach(sdr=>{{sdrM[sdr]={{}};for(let i=1;i<=12;i++){{const inp=$i("sdr-"+sdr.replace(/ /g,"_")+"-"+i);if(inp)sdrM[sdr][i]=parseInt(inp.value)||0;}}}});
-  localStorage.setItem("im_sdr_metas",JSON.stringify(sdrM));
-  // Metas globais
-  const goals={{}};
-  for(let i=1;i<=12;i++){{goals[i]={{vgv:parseFloat($i("mm-vgv-"+i)?.value)||0,ent:parseFloat($i("mm-ent-"+i)?.value)||0}};}}
-  localStorage.setItem("im_goals_"+new Date().getFullYear(),JSON.stringify(goals));
-  $i("mm-ok").style.display="block";setTimeout(()=>$i("mm-ok").style.display="none",2500);
-  filtrar();
+  atualizarEquipe();  // atualiza CONFIG.equipe a partir dos selects
+  // Metas de agendamento dos SDRs
+  const sdrs=Object.entries(CONFIG.equipe||{{}}).filter(([,v])=>v.role==="sdr").map(([k])=>k);
+  CONFIG.sdrMetas=CONFIG.sdrMetas||{{}};
+  sdrs.forEach(sdr=>{{CONFIG.sdrMetas[sdr]={{}};for(let i=1;i<=12;i++){{const inp=$i("sdr-"+sdr.replace(/ /g,"_")+"-"+i);if(inp)CONFIG.sdrMetas[sdr][i]=parseInt(inp.value)||0;}}}});
+  // Metas do TIME (divididas entre corretores/coordenadoras)
+  const tm={{}};for(let i=1;i<=12;i++){{tm[i]={{vgv:parseFloat($i("mm-vgv-"+i)?.value)||0,ent:parseFloat($i("mm-ent-"+i)?.value)||0}};}}CONFIG.timeMetas=tm;
+  // Metas dos KPIs (cartões do topo)
+  const km={{}};for(let i=1;i<=12;i++){{km[i]={{vgv:parseFloat($i("kpi-vgv-"+i)?.value)||0,ent:parseFloat($i("kpi-ent-"+i)?.value)||0}};}}CONFIG.kpiMetas=km;
+  // Gera o texto pra colar no GitHub
+  $i("cfg-json").value=JSON.stringify(CONFIG,null,2);
+  $i("cfg-save-box").style.display="block";
+  $i("cfg-save-box").scrollIntoView({{behavior:"smooth",block:"nearest"}});
+  filtrar();  // aplica na hora neste aparelho (prévia)
+}}
+
+function copiarConfig(){{
+  const t=$i("cfg-json");
+  const ok=()=>{{$i("cfg-copy-ok").style.display="inline";setTimeout(()=>$i("cfg-copy-ok").style.display="none",2000);}};
+  if(navigator.clipboard&&navigator.clipboard.writeText){{
+    navigator.clipboard.writeText(t.value).then(ok).catch(()=>{{t.select();document.execCommand("copy");ok();}});
+  }}else{{t.select();document.execCommand("copy");ok();}}
 }}
 
 // ── PERFIL ──────────────────────────────────────────────────────
@@ -1096,7 +1159,7 @@ function ir(id){{
   $i("psh").classList.remove("vis");
   fecharMenu();
   if(id==="cal") renderCal();
-  if(id==="cfg"){{ renderPendentes(); renderEquipe(); renderSDRMetas(); renderCorrMetas(); renderMM(); }}
+  if(id==="cfg"){{ renderPendentes(); renderEquipe(); renderSDRMetas(); renderCorrMetas(); renderMM(); renderMMKpi(); }}
 }}
 function toggleMenu(){{$i("mov").classList.toggle("vis");$i("psh").classList.remove("vis");}}
 function fecharMenu(){{$i("mov").classList.remove("vis");}}
@@ -1130,7 +1193,7 @@ const R=v=>"R$ "+v.toLocaleString("pt-BR",{{minimumFractionDigits:2,maximumFract
 const R0=v=>"R$ "+Math.round(v).toLocaleString("pt-BR");
 function ord(e){{const n=e.toUpperCase();for(let i=0;i<ORDEM.length;i++) if(n.includes(ORDEM[i])) return i; return 99;}}
 function metas(){{
-  const goals=getMetas(), mes=new Date().getMonth()+1;
+  const goals=getKpiMetas(), mes=new Date().getMonth()+1;
   const g=goals[mes]||{{vgv:VGV0/12,ent:ENT0/12}};
   return{{vgv:g.vgv||VGV0/12,ent:g.ent||ENT0/12,entR:parseFloat(localStorage.getItem("im_entr"))||0}};
 }}
@@ -1317,6 +1380,23 @@ cCV=new Chart($i("gCV"),{{type:"doughnut",data:{{labels:[],datasets:[{{data:[],b
 currentUser={{id:"admin",name:"{ADMIN_NOME}",email:ADMIN_EMAIL,photo:"",status:"approved"}};
 initUI();
 filtrar();
+carregarConfig();  // busca as configurações salvas no GitHub e re-renderiza
+
+async function carregarConfig(){{
+  try{{
+    const r=await fetch(CONFIG_FILE+"?t="+Date.now(),{{cache:"no-store"}});
+    if(!r.ok) return;  // arquivo ainda não existe — usa os padrões
+    const data=await r.json();
+    if(data&&typeof data==="object"){{
+      if(data.equipe)    CONFIG.equipe=data.equipe;
+      if(data.sdrMetas)  CONFIG.sdrMetas=data.sdrMetas;
+      if(data.kpiMetas)  CONFIG.kpiMetas=data.kpiMetas;
+      if(data.timeMetas) CONFIG.timeMetas=data.timeMetas;
+    }}
+    filtrar();
+    if($i("eq-tbody")){{renderEquipe();renderSDRMetas();renderCorrMetas();renderMM();renderMMKpi();}}
+  }}catch(e){{console.warn("Não consegui carregar config.json:",e);}}
+}}
 </script>
 </body></html>"""
 
