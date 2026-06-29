@@ -3,30 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IM Incorporadora · KPIs</title>
+<title>IM Incorporadora · Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#eef1f6; --card:#fff; --line:#e3e7ee; --line2:#f0f2f7;
-    --ink:#1b2433; --ink2:#5b6577; --ink3:#9aa3b2;
-    --blue:#2f6cea; --blue-d:#1e4fd0; --blue-l:#e9f0fe;
-    --green:#1aa053; --amber:#e0a93a; --red:#e3534f; --track:#eef1f6;
+    --bg:#eef1f6;--card:#fff;--line:#e3e7ee;--line2:#f0f2f7;
+    --ink:#1b2433;--ink2:#5b6577;--ink3:#9aa3b2;
+    --blue:#2f6cea;--blue-d:#1e4fd0;--blue-l:#e9f0fe;
+    --green:#1aa053;--amber:#e0a93a;--red:#e3534f;--track:#eef1f6;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;
-    font-feature-settings:'tnum' 1;line-height:1.4;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-feature-settings:'tnum' 1;line-height:1.4;-webkit-font-smoothing:antialiased}
   .num{font-variant-numeric:tabular-lining}
 
   .backdrop{position:fixed;inset:0;background:rgba(20,28,42,.35);opacity:0;visibility:hidden;transition:.22s;z-index:40}
   .backdrop.show{opacity:1;visibility:visible}
-  .sidebar{position:fixed;top:0;left:0;height:100%;width:236px;background:#fff;border-right:1px solid var(--line);
-    padding:20px 16px;display:flex;flex-direction:column;transform:translateX(-100%);transition:.24s cubic-bezier(.4,0,.2,1);z-index:50}
+  .sidebar{position:fixed;top:0;left:0;height:100%;width:236px;background:#fff;border-right:1px solid var(--line);padding:20px 16px;display:flex;flex-direction:column;transform:translateX(-100%);transition:.24s cubic-bezier(.4,0,.2,1);z-index:50}
   .sidebar.open{transform:translateX(0);box-shadow:6px 0 30px rgba(20,28,42,.12)}
   .logo{display:flex;align-items:center;gap:10px;margin-bottom:24px;padding:4px 6px}
-  .logo .mk{width:36px;height:36px;border:2px solid var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue);font-size:14px}
-  .logo .nm{font-weight:700;font-size:13px;letter-spacing:.5px}.logo .nm span{display:block;font-size:9px;color:var(--ink3);letter-spacing:2px}
+  .logo .mk{width:38px;height:38px;border:2px solid var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue);font-size:14px}
+  .logo img.logo-img{max-height:42px;max-width:170px;object-fit:contain}
   .nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;color:var(--ink2);font-size:13px;text-decoration:none;margin-bottom:2px;cursor:pointer}
   .nav a.active{background:var(--blue);color:#fff;font-weight:500}
   .nav a:not(.active):hover{background:var(--blue-l)}
@@ -37,27 +35,22 @@
   .tb-left{display:flex;align-items:center;gap:14px}
   .burger{width:40px;height:40px;border:none;background:transparent;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
   .burger svg{width:22px;height:22px;stroke:var(--ink)}
-  .brand-sm{display:flex;align-items:center;gap:9px}
-  .brand-sm .mk{width:34px;height:34px;border:2px solid var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--blue);font-size:13px}
-  .brand-sm b{font-size:12px;letter-spacing:1px;color:var(--ink2)}
-  .ttl-h{border-left:1px solid var(--line);padding-left:16px;margin-left:4px}
   .ttl-h h1{font-size:20px;font-weight:700;line-height:1.1}
   .ttl-h .sub{font-size:11px;color:var(--ink3)}
   .controls{display:flex;align-items:center;gap:9px}
   .pill{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:12px;color:var(--ink2);display:flex;align-items:center;gap:7px;cursor:pointer}
   .av{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px}
 
+  .view{display:none}.view.active{display:block}
   .lbl{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:var(--ink3);font-weight:600;margin:14px 0 9px}
   .lbl:first-of-type{margin-top:4px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:14px 16px}
-
   .row{display:grid;gap:11px}
-  .k6{grid-template-columns:repeat(6,1fr)}
+  .kgrid{grid-template-columns:repeat(auto-fit,minmax(168px,1fr))}
   .c3{grid-template-columns:repeat(3,1fr)}
   .mid{grid-template-columns:1.05fr 1.05fr 1.25fr}
-  .mid2{grid-template-columns:1.05fr 1.4fr 1.15fr}
-  .bot{grid-template-columns:1fr 1.15fr 1.15fr}
-  @media(max-width:1150px){.k6{grid-template-columns:repeat(3,1fr)}.c3,.mid,.mid2,.bot{grid-template-columns:1fr}}
+  .g2{grid-template-columns:1fr 1fr}
+  @media(max-width:1080px){.c3,.mid,.g2{grid-template-columns:1fr}}
 
   .kpi{display:flex;gap:11px;align-items:flex-start}
   .kpi .bdg{width:38px;height:38px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -66,25 +59,24 @@
   .kpi .val{font-size:18px;font-weight:700;margin:3px 0;letter-spacing:-0.3px}
   .kpi .val.green{color:var(--green)}
   .kpi .sub{font-size:10px;color:var(--ink3)}
-  .kpi .mtrk{height:5px;background:var(--track);border-radius:3px;overflow:hidden;margin-top:5px}
-  .kpi .mtrk i{display:block;height:100%;background:var(--green);border-radius:3px}
+  .kpi.estoque .bdg{background:var(--green)}
+  .kpi.estoque .val{color:var(--green)}
 
   .conv .val{font-size:22px;font-weight:700;color:var(--blue);margin:5px 0 3px}
   .conv .cap{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);font-weight:600}
   .conv .sub{font-size:11px;color:var(--ink3)}
-  .conv{position:relative}
-  .conv .ic{position:absolute;top:0;right:0;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--blue-l);display:flex;align-items:center;justify-content:center}
-  .conv .ic svg{width:15px;height:15px;stroke:var(--blue);fill:none}
 
   .sect-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:15px 17px}
   .sect-card h2{font-size:12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--ink2);margin-bottom:13px}
 
-  .prev3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-  .pbox{background:var(--blue);color:#fff;border-radius:10px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;min-height:128px;position:relative}
-  .pbox .cap{font-size:9px;letter-spacing:.6px;text-transform:uppercase;opacity:.85;font-weight:600}
-  .pbox .val{font-size:21px;font-weight:700;margin:7px 0 5px;letter-spacing:-0.5px}
-  .pbox .sub{font-size:10px;opacity:.8;line-height:1.4}
-  .pbox .ic{position:absolute;bottom:12px;right:12px}.pbox .ic svg{width:30px;height:30px;stroke:rgba(255,255,255,.4);fill:none}
+  .prev-card{background:var(--blue);color:#fff;border-radius:12px;padding:18px;display:flex;align-items:center;gap:18px}
+  .ring{width:128px;height:128px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:conic-gradient(#fff var(--p,0%), rgba(255,255,255,.22) 0)}
+  .ring-in{width:100px;height:100px;border-radius:50%;background:var(--blue);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .ring-in .v{font-size:17px;font-weight:700;letter-spacing:-0.3px}
+  .ring-in .l{font-size:9px;opacity:.8;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+  .prev-card .info .cap{font-size:10px;letter-spacing:.6px;text-transform:uppercase;opacity:.85;font-weight:600}
+  .prev-card .info .pc{font-size:30px;font-weight:700;margin:6px 0 4px}
+  .prev-card .info .sub{font-size:11px;opacity:.85;line-height:1.5}
 
   .metas2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .mblk .mc{font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);font-weight:600}
@@ -93,31 +85,9 @@
   .mblk .trk{height:7px;background:var(--track);border-radius:4px;overflow:hidden}.mblk .trk i{display:block;height:100%;border-radius:4px}
   .mblk .pc{font-size:11px;font-weight:500;margin-top:7px}
 
-  .pexec .r{display:grid;grid-template-columns:120px 1fr auto;gap:10px;align-items:center;margin-bottom:9px;font-size:11px}
-  .pexec .nm{color:var(--ink2);font-weight:500;text-transform:uppercase;letter-spacing:.3px;font-size:10px}
-  .pexec .bar{height:13px;background:var(--track);border-radius:3px;overflow:hidden}.pexec .bar i{display:block;height:100%;background:var(--blue);border-radius:3px}
-  .pexec .vl{color:var(--ink);font-weight:600;white-space:nowrap}.pexec .vl span{color:var(--ink3);font-weight:400}
-  .pexec .axis{display:flex;justify-content:space-between;font-size:9px;color:var(--ink3);margin-left:130px;margin-top:4px}
-
-  .modbox{border:1px solid var(--line);border-radius:10px;padding:13px 15px;position:relative}
-  .modbox .nm{font-size:11px;font-weight:600}.modbox .v{font-size:21px;font-weight:700;margin:4px 0 2px}.modbox .s{font-size:10px;color:var(--ink3)}
-  .modbox.crm{border-color:#bcd0f6}.modbox.crm .v{color:var(--blue)}
-  .modbox.mkt{border-color:#f6d9b0}.modbox.mkt .v{color:var(--amber)}
-  .modbox.cvs{border-color:#bfe6cf}.modbox.cvs .v{color:var(--green)}
-  .modbox .ic{position:absolute;top:13px;right:14px;opacity:.5}.modbox .ic svg{width:18px;height:18px;fill:none}
-
-  .ppbox{background:var(--blue);color:#fff;border-radius:10px;padding:14px;height:100%;display:flex;flex-direction:column;justify-content:center}
-  .ppbox .cap{font-size:9px;letter-spacing:.6px;text-transform:uppercase;opacity:.85;font-weight:600}
-  .ppbox .val{font-size:21px;font-weight:700;margin:7px 0 6px;letter-spacing:-0.4px}
-  .ppbox .sub{font-size:10px;opacity:.82;line-height:1.45}
-  .stat .cap{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);font-weight:600}
-  .stat .val{font-size:19px;font-weight:700;margin:6px 0 5px}.stat .val.red{color:var(--red)}
-  .stat .sub{font-size:10px;color:var(--ink3);line-height:1.4}
-
   .pace .pr{margin-bottom:14px}.pace .pr:last-child{margin-bottom:0}
   .pace .h{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
-  .pace .h b{font-weight:500}.pace .h .rz{font-weight:700;color:var(--red)}
-  .pace .trk{height:7px;background:var(--track);border-radius:4px;overflow:hidden}.pace .trk i{display:block;height:100%;background:var(--red);border-radius:4px}
+  .pace .h b{font-weight:500}.pace .trk{height:7px;background:var(--track);border-radius:4px;overflow:hidden}.pace .trk i{display:block;height:100%;border-radius:4px}
   .pace .f{font-size:10px;color:var(--ink3);margin-top:5px}
 
   table{width:100%;border-collapse:collapse}
@@ -128,6 +98,10 @@
   td .sub{font-size:9.5px;color:var(--ink3)}
   .tbar{height:6px;width:64px;background:var(--track);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle}.tbar i{display:block;height:100%;border-radius:3px}
 
+  .stat .cap{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--ink3);font-weight:600}
+  .stat .val{font-size:19px;font-weight:700;margin:6px 0 5px}.stat .val.red{color:var(--red)}
+  .stat .sub{font-size:10px;color:var(--ink3)}
+  .note{font-size:11px;color:var(--ink3);margin-top:10px}
   footer{text-align:center;font-size:11px;color:var(--ink3);margin-top:16px}
 </style>
 </head>
@@ -135,18 +109,17 @@
 
 <div class="backdrop" id="bd" onclick="toggleNav()"></div>
 <aside class="sidebar" id="sb">
-  <div class="logo"><div class="mk">IM</div><div class="nm">INCORPORADORA<span>EXECUTIVO</span></div></div>
-  <nav class="nav">
-    <a class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Visão Geral</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg>Vendas</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0M16 11h5M18.5 8.5v5"/></svg>Leads</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>CRM</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg>Financeiro</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg>Obras</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16M4 9h5"/></svg>Unidades</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-7-7 18-2.5-7.5L3 11z"/></svg>Marketing</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-6"/></svg>Metas</a>
-    <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5L5.1 11a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5z"/></svg>Configurações</a>
+  <div class="logo">
+    <img class="logo-img" src="logoapp.jpeg" alt="IM Incorporadora" onerror="this.outerHTML='&lt;div class=&quot;mk&quot;&gt;IM&lt;/div&gt;'">
+  </div>
+  <nav class="nav" id="nav">
+    <a class="active" data-view="visao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Visão Geral</a>
+    <a data-view="crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg>RD CRM</a>
+    <a data-view="marketing"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l18-7-7 18-2.5-7.5L3 11z"/></svg>RD Marketing</a>
+    <a data-view="conversas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.3 7.3L3 21l1.7-6.7A8 8 0 1 1 21 12z"/></svg>RD Conversas</a>
+    <a data-view="unidades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg>Unidades / Estoque</a>
+    <a data-view="visao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-6"/></svg>Metas</a>
+    <a data-view="visao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1L16.5 3h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5L5.1 11a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5z"/></svg>Configurações</a>
   </nav>
 </aside>
 
@@ -154,8 +127,7 @@
   <div class="topbar">
     <div class="tb-left">
       <button class="burger" onclick="toggleNav()" aria-label="Abrir menu"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-      <div class="brand-sm"><div class="mk">IM</div><b>INCORPORADORA</b></div>
-      <div class="ttl-h"><h1>KPIs</h1><div class="sub">Dados buscados em <span id="t-busca"></span></div></div>
+      <div class="ttl-h"><h1 id="view-title">Visão Geral</h1><div class="sub">Dados buscados em <span id="t-busca"></span></div></div>
     </div>
     <div class="controls">
       <div class="pill" id="t-data"></div>
@@ -164,179 +136,190 @@
     </div>
   </div>
 
-  <div class="lbl">Indicadores principais</div>
-  <div class="row k6">
-    <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg></div><div style="flex:1"><div class="cap">Receita fechada</div><div class="val green num" id="k-receita"></div><div class="mtrk"><i id="k-receita-bar"></i></div><div class="sub" id="k-receita-pc" style="margin-top:4px"></div></div></div>
-    <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M9 4v16"/></svg></div><div><div class="cap">Pipeline ativo</div><div class="val num" id="k-pipe"></div><div class="sub">—</div></div></div>
-    <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="3"/><path d="M2 20a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6"/></svg></div><div><div class="cap">Negociações ativas</div><div class="val num" id="k-neg"></div><div class="sub">—</div></div></div>
-    <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M5 21a7 7 0 0 1 14 0M9.5 9a2.5 2.5 0 0 1 5 0"/></svg></div><div><div class="cap">Leads marketing</div><div class="val num" id="k-lmkt"></div><div class="sub">65,5% do CRM</div></div></div>
-    <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3"/></svg></div><div><div class="cap">Leads CRM</div><div class="val num" id="k-lcrm"></div><div class="sub">152,7% do MKT</div></div></div>
-    <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div><div><div class="cap">Ticket médio</div><div class="val num" id="k-ticket"></div><div class="sub">—</div></div></div>
-  </div>
+  <section class="view active" data-view="visao">
+    <div class="lbl">Indicadores principais</div>
+    <div class="row kgrid">
+      <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/></svg></div><div><div class="cap">Receita fechada</div><div class="val green num" id="k-receita"></div><div class="sub" id="k-receita-pc"></div></div></div>
+      <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M9 4v16"/></svg></div><div><div class="cap">Pipeline ativo</div><div class="val num" id="k-pipe"></div><div class="sub" id="k-neg2"></div></div></div>
+      <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="8" cy="9" r="3"/><path d="M2 20a6 6 0 0 1 12 0M16 6a3 3 0 0 1 0 6"/></svg></div><div><div class="cap">Negociações ativas</div><div class="val num" id="k-neg"></div><div class="sub">em aberto</div></div></div>
+      <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><path d="M5 21a7 7 0 0 1 14 0"/></svg></div><div><div class="cap">Leads marketing</div><div class="val num" id="k-lmkt"></div><div class="sub">contatos MKT</div></div></div>
+      <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg></div><div><div class="cap">Leads CRM</div><div class="val num" id="k-lcrm"></div><div class="sub">no período</div></div></div>
+      <div class="card kpi"><div class="bdg"><svg viewBox="0 0 24 24"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></div><div><div class="cap">Ticket médio</div><div class="val num" id="k-ticket"></div><div class="sub">por venda</div></div></div>
+      <div class="card kpi estoque"><div class="bdg"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></div><div><div class="cap">Estoque</div><div class="val num" id="k-estoque"></div><div class="sub" id="k-estoque-sub"></div></div></div>
+    </div>
 
-  <div class="row c3" style="margin-top:11px">
-    <div class="card conv"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></div><div class="cap">Conv. lead → agendamento</div><div class="val num">0,5%</div><div class="sub">32 agendamentos</div></div>
-    <div class="card conv"><div class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 8-9"/><path d="M16 6h5v5"/></svg></div><div class="cap">Conv. agendamento → venda</div><div class="val num">34,4%</div><div class="sub">11 vendas</div></div>
-    <div class="card conv"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></div><div class="cap">Conv. lead → venda</div><div class="val num">0,17%</div><div class="sub">11 de 6.300</div></div>
-  </div>
-
-  <div class="row mid" style="margin-top:11px">
-    <div class="sect-card"><h2>Previsibilidade</h2>
-      <div class="prev3">
-        <div class="pbox"><div><div class="cap">Leads p/ 1 venda</div><div class="val num">609</div><div class="sub">6.300 ÷ 11 vendas = 0,17%</div></div><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/></svg></div></div>
-        <div class="pbox"><div><div class="cap">Vendas previstas/mês</div><div class="val num">0,9</div><div class="sub">pipeline × conversão</div></div><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 16l3-4 3 2 4-6"/></svg></div></div>
-        <div class="pbox"><div><div class="cap">Receita prevista/mês</div><div class="val num">R$ 952.508</div><div class="sub">0,9 × R$ 1.039.099</div></div><div class="ic"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></div></div>
+    <div class="lbl">Previsão &amp; metas</div>
+    <div class="row mid">
+      <div class="prev-card">
+        <div class="ring" id="prev-ring"><div class="ring-in"><div class="v num" id="prev-v"></div><div class="l">previsão</div></div></div>
+        <div class="info"><div class="cap">Previsão de fechamento</div><div class="pc num" id="prev-pc"></div><div class="sub" id="prev-sub"></div></div>
       </div>
-    </div>
-    <div class="sect-card"><h2>Metas do período</h2>
-      <div class="metas2">
-        <div class="mblk"><div class="mc">Meta VGV</div><div class="mv num" id="m-vgv-real"></div><div class="md num">de <span id="m-vgv-meta"></span></div><div class="trk"><i id="m-vgv-bar" style="background:var(--green)"></i></div><div class="pc" id="m-vgv-pc" style="color:var(--green)"></div></div>
-        <div class="mblk"><div class="mc">Meta entrada</div><div class="mv num" id="m-ent-real"></div><div class="md num">de <span id="m-ent-meta"></span></div><div class="trk"><i id="m-ent-bar" style="background:var(--amber)"></i></div><div class="pc" id="m-ent-pc" style="color:var(--amber)"></div></div>
+      <div class="sect-card"><h2>Metas do período</h2>
+        <div class="metas2">
+          <div class="mblk"><div class="mc">Meta VGV</div><div class="mv num" id="m-vgv-real"></div><div class="md num">de <span id="m-vgv-meta"></span></div><div class="trk"><i id="m-vgv-bar" style="background:var(--green)"></i></div><div class="pc" id="m-vgv-pc" style="color:var(--green)"></div></div>
+          <div class="mblk"><div class="mc">Meta entrada</div><div class="mv num" id="m-ent-real"></div><div class="md num">de <span id="m-ent-meta"></span></div><div class="trk"><i id="m-ent-bar" style="background:var(--amber)"></i></div><div class="pc" id="m-ent-pc" style="color:var(--amber)"></div></div>
+        </div>
       </div>
-    </div>
-    <div class="sect-card"><h2>Pipeline executivo</h2>
-      <div class="pexec">
-        <div class="r"><span class="nm">Leads</span><span class="bar"><i style="width:35%"></i></span><span class="vl num">28 <span>(10,0%)</span></span></div>
-        <div class="r"><span class="nm">Em contato</span><span class="bar"><i style="width:87%"></i></span><span class="vl num">70 <span>(25,0%)</span></span></div>
-        <div class="r"><span class="nm">Agendamento</span><span class="bar"><i style="width:19%"></i></span><span class="vl num">15 <span>(53,6%)</span></span></div>
-        <div class="r"><span class="nm">Atend. realizado</span><span class="bar"><i style="width:2%"></i></span><span class="vl num">1 <span>(3,6%)</span></span></div>
-        <div class="r"><span class="nm">Negociação</span><span class="bar"><i style="width:7%"></i></span><span class="vl num">5 <span>(17,9%)</span></span></div>
-        <div class="r"><span class="nm">Fechamento</span><span class="bar"><i style="width:14%"></i></span><span class="vl num">11 <span>(39,3%)</span></span></div>
-        <div class="axis"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="row mid2" style="margin-top:11px;align-items:stretch">
-    <div class="sect-card"><h2>Resumo por módulo</h2>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div class="modbox crm"><div class="ic"><svg viewBox="0 0 24 24" stroke="#2f6cea" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M3 20a6 6 0 0 1 12 0"/></svg></div><div class="nm">CRM</div><div class="v num">6.300</div><div class="s">leads no período</div></div>
-        <div class="modbox mkt"><div class="ic"><svg viewBox="0 0 24 24" stroke="#e0a93a" stroke-width="2"><path d="M3 11l18-7-7 18-2.5-7.5L3 11z"/></svg></div><div class="nm">Marketing</div><div class="v num">4.125</div><div class="s">contatos MKT</div></div>
-        <div class="modbox cvs"><div class="ic"><svg viewBox="0 0 24 24" stroke="#1aa053" stroke-width="2"><path d="M21 12a8 8 0 0 1-11.3 7.3L3 21l1.7-6.7A8 8 0 1 1 21 12z"/></svg></div><div class="nm">Conversas</div><div class="v num">6.681</div><div class="s">contatos totais</div></div>
-      </div>
-    </div>
-    <div class="sect-card"><h2>Pipeline &amp; previsibilidade</h2>
-      <div style="display:grid;grid-template-columns:1.25fr 1fr;gap:11px;height:calc(100% - 30px)">
-        <div class="ppbox"><div class="cap">Previsão de fechamento</div><div class="val num" id="pp-prev"></div><div class="sub"><span id="pp-pct"></span> da meta (<span id="pp-meta" class="num"></span>)<br>— de <span id="pp-aberto" class="num"></span> em aberto</div></div>
-        <div style="display:flex;flex-direction:column;justify-content:space-between;gap:8px">
-          <div class="stat"><div class="cap">Win rate</div><div class="val red num">0,18%</div><div class="sub">11 ganhos / 6.170 perdidos</div></div>
-          <div class="stat"><div class="cap">Ciclo médio</div><div class="val num">60 dias <span style="font-size:10px;color:var(--amber)">(~110d real)</span></div><div class="sub">data de cadastro</div></div>
-          <div class="stat"><div class="cap">Negócios em aberto</div><div class="val num">119</div><div class="sub">R$ 21.245.000 na esteira</div></div>
+      <div class="sect-card"><h2>Ritmo do mês (pacing)</h2>
+        <div class="pace">
+          <div class="pr"><div class="h"><b>VGV realizado</b><span class="num" id="p-vgv" style="font-weight:700;color:var(--red)"></span></div><div class="trk"><i id="p-vgv-bar"></i></div><div class="f" id="p-vgv-f"></div></div>
+          <div class="pr"><div class="h"><b>Entrada realizada</b><span class="num" id="p-ent" style="font-weight:700"></span></div><div class="trk"><i id="p-ent-bar"></i></div><div class="f" id="p-ent-f"></div></div>
         </div>
       </div>
     </div>
-    <div class="sect-card"><h2>Ritmo do mês (pacing)</h2>
-      <div class="pace">
-        <div class="pr"><div class="h"><b>VGV realizado</b><span class="rz num" id="p-vgv"></span></div><div class="trk"><i id="p-vgv-bar"></i></div><div class="f" id="p-vgv-f"></div></div>
-        <div class="pr"><div class="h"><b>Entrada realizada</b><span class="rz num" id="p-ent"></span></div><div class="trk"><i id="p-ent-bar"></i></div><div class="f" id="p-ent-f"></div></div>
-      </div>
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);font-size:11px;color:var(--ink3);line-height:1.5">
-        Dia 29 de 30 · 97% do mês. Produção real concentrada na venda da Jéssica.
-      </div>
-    </div>
-  </div>
 
-  <div class="row bot" style="margin-top:11px;align-items:start">
-    <div class="sect-card"><h2>Pipeline ponderado por etapa</h2>
-      <table>
-        <thead><tr><th>Etapa</th><th class="r">Peso</th><th class="r">Qtd</th><th class="r">Valor bruto</th><th class="r">Ponderado</th></tr></thead>
-        <tbody>
-          <tr><td>LEADs</td><td class="r">5%</td><td class="r num">28</td><td class="r num">R$ 0,00</td><td class="r num">R$ 0,00</td></tr>
-          <tr><td>Em contato</td><td class="r">10%</td><td class="r num">70</td><td class="r num">R$ 0,00</td><td class="r num">R$ 0,00</td></tr>
-          <tr><td>Agendamento</td><td class="r">20%</td><td class="r num">15</td><td class="r num">R$ 0,00</td><td class="r num">R$ 0,00</td></tr>
-          <tr><td>Atendimento realizado</td><td class="r">35%</td><td class="r num">1</td><td class="r num">R$ 245.000</td><td class="r num">R$ 85.750</td></tr>
-          <tr><td>Negociação</td><td class="r">55%</td><td class="r num">5</td><td class="r num">R$ 21.000.000</td><td class="r num" style="font-weight:700">R$ 11.550.000</td></tr>
-        </tbody>
-      </table>
+    <div class="lbl">Resumo por módulo</div>
+    <div class="row c3">
+      <div class="sect-card conv"><div class="cap">RD CRM</div><div class="val num" id="r-crm"></div><div class="sub">leads no período</div></div>
+      <div class="sect-card conv"><div class="cap">RD Marketing</div><div class="val num" id="r-mkt"></div><div class="sub">contatos MKT</div></div>
+      <div class="sect-card conv"><div class="cap">RD Conversas</div><div class="val num" id="r-conv"></div><div class="sub">contatos totais</div></div>
     </div>
-    <div class="sect-card"><h2>Metas por corretor e coordenadora</h2>
-      <table>
-        <thead><tr><th>Corretor / Coordenadora</th><th class="r">VGV no mês</th><th class="r">Meta</th><th class="r">%</th><th class="r">Previsão</th></tr></thead>
-        <tbody id="tb-corretores"></tbody>
-      </table>
+  </section>
+
+  <section class="view" data-view="crm">
+    <div class="lbl">Visão do CRM</div>
+    <div class="row c3">
+      <div class="sect-card stat"><div class="cap">Win rate</div><div class="val red num" id="crm-win"></div><div class="sub" id="crm-win-sub"></div></div>
+      <div class="sect-card stat"><div class="cap">Ciclo de venda médio</div><div class="val num" id="crm-ciclo"></div><div class="sub">data de cadastro</div></div>
+      <div class="sect-card stat"><div class="cap">Negócios em aberto</div><div class="val num" id="crm-aberto"></div><div class="sub" id="crm-aberto-sub"></div></div>
     </div>
-    <div class="sect-card"><h2>Motivos de perda</h2>
-      <table>
-        <thead><tr><th>Motivo</th><th class="r">Qtd</th><th class="r">%</th><th class="r">Valor</th></tr></thead>
-        <tbody>
-          <tr><td>Não tem mais interesse</td><td class="r num">3.666</td><td class="r num">59%</td><td class="r num">R$ 476.861.569,60</td></tr>
-          <tr><td>Não respondeu</td><td class="r num">782</td><td class="r num">13%</td><td class="r num">R$ 116.051.278,61</td></tr>
-          <tr><td>Optou por outro empreendimento</td><td class="r num">561</td><td class="r num">9%</td><td class="r num">R$ 104.866.537,68</td></tr>
-          <tr><td>Engano</td><td class="r num">513</td><td class="r num">8%</td><td class="r num">R$ 56.521.208,05</td></tr>
-          <tr><td>Falta de entrada</td><td class="r num">267</td><td class="r num">4%</td><td class="r num">R$ 165.806.551,73</td></tr>
-        </tbody>
-      </table>
+    <div class="lbl">Pipeline ponderado por etapa</div>
+    <div class="sect-card"><table><thead><tr><th>Etapa</th><th class="r">Peso</th><th class="r">Qtd</th><th class="r">Valor bruto</th><th class="r">Ponderado</th></tr></thead><tbody id="crm-etapas"></tbody></table></div>
+    <div class="lbl">Metas por corretor e coordenadora</div>
+    <div class="sect-card"><table><thead><tr><th>Corretor / Coordenadora</th><th class="r">VGV no mês</th><th class="r">Meta</th><th class="r">%</th><th class="r">Previsão</th></tr></thead><tbody id="crm-corretores"></tbody></table></div>
+    <div class="lbl">Motivos de perda</div>
+    <div class="sect-card"><table><thead><tr><th>Motivo</th><th class="r">Qtd</th><th class="r">%</th><th class="r">Valor</th></tr></thead><tbody id="crm-motivos"></tbody></table></div>
+  </section>
+
+  <section class="view" data-view="marketing">
+    <div class="lbl">Visão de Marketing</div>
+    <div class="row c3">
+      <div class="sect-card conv"><div class="cap">Leads marketing</div><div class="val num" id="mkt-leads"></div><div class="sub">contatos na base</div></div>
+      <div class="sect-card conv"><div class="cap">Conv. lead → agendamento</div><div class="val num">0,5%</div><div class="sub">32 agendamentos</div></div>
+      <div class="sect-card conv"><div class="cap">Conv. lead → venda</div><div class="val num">0,17%</div><div class="sub">11 de 6.300</div></div>
     </div>
-  </div>
+    <div class="lbl">Campanhas</div>
+    <div class="sect-card"><table><thead><tr><th>Campanha</th><th class="r">Contatos</th></tr></thead><tbody id="mkt-campanhas"></tbody></table><p class="note" id="mkt-note"></p></div>
+  </section>
+
+  <section class="view" data-view="conversas">
+    <div class="lbl">Visão de Conversas</div>
+    <div class="row c3">
+      <div class="sect-card conv"><div class="cap">Contatos totais</div><div class="val num" id="cv-total"></div><div class="sub">no RD Conversas</div></div>
+      <div class="sect-card conv"><div class="cap">Atendentes</div><div class="val num" id="cv-atend"></div><div class="sub">cadastrados</div></div>
+      <div class="sect-card conv"><div class="cap">Conv. agendamento → venda</div><div class="val num">34,4%</div><div class="sub">11 vendas</div></div>
+    </div>
+    <div class="lbl">Atendentes</div>
+    <div class="sect-card"><table><thead><tr><th>Nome</th><th>E-mail</th></tr></thead><tbody id="cv-atendentes"></tbody></table><p class="note" id="cv-note"></p></div>
+  </section>
+
+  <section class="view" data-view="unidades">
+    <div class="lbl">Estoque (planilhas de vendas)</div>
+    <div class="row c3">
+      <div class="sect-card stat"><div class="cap">Estoque total</div><div class="val num" id="es-total"></div><div class="sub">unidades em todos os empreendimentos</div></div>
+      <div class="sect-card stat"><div class="cap">Disponível para venda</div><div class="val num" id="es-disp"></div><div class="sub">unidades</div></div>
+      <div class="sect-card stat"><div class="cap">Valor em estoque disponível</div><div class="val num" id="es-valor" style="color:var(--green)"></div><div class="sub">soma do valor das unidades disponíveis</div></div>
+    </div>
+    <div class="lbl">Por empreendimento</div>
+    <div class="sect-card"><table><thead><tr><th>Empreendimento</th><th class="r">Total un.</th><th class="r">Disponíveis</th><th class="r">Valor disponível</th></tr></thead><tbody id="es-tabela"></tbody></table>
+      <p class="note">Considera apenas o número de unidades e o valor das unidades disponíveis (unidades vendidas/reservadas não têm valor listado nas planilhas).</p>
+    </div>
+  </section>
 
   <footer>Dashboard atualizado em <span id="t-foot"></span></footer>
 </main>
 
 <script>
-function toggleNav(){document.getElementById('sb').classList.toggle('open');document.getElementById('bd').classList.toggle('show');}
-
-/* ===================================================================== */
-/*  CONFIG — ÚNICA FONTE DOS DADOS.                                       */
-/*  Para conectar ao RD Station: troque os valores abaixo por uma         */
-/*  chamada ao SEU backend (que guarda o token com segurança), ex.:       */
-/*    const DADOS = await fetch('/api/rd/kpis').then(r => r.json());      */
-/*  NUNCA coloque o token da API do RD direto neste arquivo.              */
-/* ===================================================================== */
-const DADOS = {"buscadoEm": "29/06/2026 às 20:02", "atualizadoEm": "29/06/2026 às 20:02", "dataFiltro": "29/06/2026", "metaVGV": 3200000.0, "metaEntrada": 300000.0, "realizadoVGV": 359000.0, "realizadoEntrada": 50000.0, "receitaFechada": 359000.0, "pipelineAtivo": 21245000.0, "previsaoPonderada": 11635750.0, "negociacoesAtivas": 119, "leadsMarketing": 4125, "leadsCRM": 6300, "ticketMedio": 918578.14, "corretores": [{"nome": "Jéssica Cararo", "cargo": "Coordenadora de Plataforma", "vgv": 359000.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "João Vasconcelos", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 85750.0}, {"nome": "Jonathan Vitorino", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "Giovana", "cargo": "Coordenadora de Plataforma", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}]};
+const DADOS = {"buscadoEm": "29/06/2026 às 20:23", "atualizadoEm": "29/06/2026 às 20:23", "dataFiltro": "29/06/2026", "metaVGV": 3200000.0, "metaEntrada": 300000.0, "realizadoVGV": 359000.0, "realizadoEntrada": 50000.0, "receitaFechada": 359000.0, "pipelineAtivo": 21245000.0, "previsaoPonderada": 11635750.0, "negociacoesAtivas": 119, "leadsMarketing": 4125, "leadsCRM": 6300, "conversasTotal": 6681, "ticketMedio": 758894.11, "winRate": 0.29, "ganhos": 18, "perdidos": 6170, "cicloDias": 0, "estoque": {"total": 200, "disponivelQtd": 44, "disponivelValor": 46976275.59, "porEmpreendimento": [{"nome": "Laguna Sky Garden", "total": 75, "disp": 15, "valor": 26099057.15}, {"nome": "Sintropia Sky Garden", "total": 97, "disp": 29, "valor": 20877218.44}, {"nome": "Residencial Girassol", "total": 20, "disp": 0, "valor": 0.0}, {"nome": "Residencial Lótus", "total": 8, "disp": 0, "valor": 0.0}]}, "corretores": [{"nome": "Jéssica Cararo", "cargo": "Coordenadora de Plataforma", "vgv": 359000.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "João Vasconcelos", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 85750.0}, {"nome": "Jonathan Vitorino", "cargo": "Corretor", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}, {"nome": "Giovana", "cargo": "Coordenadora de Plataforma", "vgv": 0.0, "meta": 800000.0, "previsao": 0.0}], "etapas": [{"nome": "LEADs", "peso": 5, "qtd": 28, "bruto": 0.0, "pond": 0.0}, {"nome": "EM CONTATO", "peso": 10, "qtd": 70, "bruto": 0.0, "pond": 0.0}, {"nome": "AGENDAMENTO", "peso": 20, "qtd": 15, "bruto": 0.0, "pond": 0.0}, {"nome": "ATENDIMENTO REALIZADO", "peso": 35, "qtd": 1, "bruto": 245000.0, "pond": 85750.0}, {"nome": "NEGOCIAÇÃO", "peso": 55, "qtd": 5, "bruto": 21000000.0, "pond": 11550000.0}], "motivos": [{"motivo": "Não tem mais interesse", "qtd": 3666, "pct": 59, "valor": 476861569.6}, {"motivo": "Não respondeu", "qtd": 782, "pct": 13, "valor": 116051278.61}, {"motivo": "Optou por outro empreendimento", "qtd": 561, "pct": 9, "valor": 104866537.68}, {"motivo": "Engano", "qtd": 513, "pct": 8, "valor": 56521208.05}, {"motivo": "Falta de entrada", "qtd": 267, "pct": 4, "valor": 165806551.73}, {"motivo": "Renda não alcançou o mínimo", "qtd": 193, "pct": 3, "valor": 17322352.8}, {"motivo": "Não informado", "qtd": 45, "pct": 1, "valor": 0.0}, {"motivo": "Criança", "qtd": 35, "pct": 1, "valor": 8962438.99}, {"motivo": "Prazo de entrega", "qtd": 29, "pct": 0, "valor": 4835315.13}, {"motivo": "Localização", "qtd": 27, "pct": 0, "valor": 15202963.61}, {"motivo": "Metragem incompatível", "qtd": 17, "pct": 0, "valor": 0.0}, {"motivo": "Parceria", "qtd": 15, "pct": 0, "valor": 500000.0}], "campanhas": [], "atendentes": []};
 
 const f0 = n => 'R$ ' + Math.round(n).toLocaleString('pt-BR');
+const fM = n => 'R$ ' + (n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + 'M';
 const f2 = n => 'R$ ' + n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-const pc = (a,b) => (b? a/b*100 : 0);
 const pct1 = v => v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}) + '%';
 const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+const nf = n => Number(n).toLocaleString('pt-BR');
+const TITLES = {visao:'Visão Geral', crm:'RD CRM', marketing:'RD Marketing', conversas:'RD Conversas', unidades:'Unidades / Estoque'};
+
+function toggleNav(){document.getElementById('sb').classList.toggle('open');document.getElementById('bd').classList.toggle('show');}
+function showView(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('active', s.dataset.view===v));
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active', a.dataset.view===v));
+  set('view-title', TITLES[v]||'Visão Geral');
+  document.getElementById('sb').classList.remove('open');
+  document.getElementById('bd').classList.remove('show');
+  window.scrollTo(0,0);
+}
+document.getElementById('nav').addEventListener('click', e=>{ const a=e.target.closest('a'); if(a) showView(a.dataset.view); });
 
 function render(){
-  set('t-busca', DADOS.buscadoEm); set('t-data', DADOS.dataFiltro+' ▾'); set('t-foot', DADOS.atualizadoEm);
+  const d = DADOS;
+  set('t-busca', d.buscadoEm); set('t-data', d.dataFiltro+' ▾'); set('t-foot', d.atualizadoEm);
 
-  const pVGV = pc(DADOS.realizadoVGV, DADOS.metaVGV);
-  const pENT = pc(DADOS.realizadoEntrada, DADOS.metaEntrada);
+  const pVGV = d.metaVGV? d.realizadoVGV/d.metaVGV*100 : 0;
+  const pENT = d.metaEntrada? d.realizadoEntrada/d.metaEntrada*100 : 0;
+  const cobertura = d.metaVGV? d.previsaoPonderada/d.metaVGV*100 : 0;
 
-  set('k-receita', f0(DADOS.receitaFechada));
-  document.getElementById('k-receita-bar').style.width = Math.min(pVGV,100)+'%';
-  set('k-receita-pc', pct1(pVGV)+' da meta');
-  set('k-pipe', f0(DADOS.pipelineAtivo));
-  set('k-neg', DADOS.negociacoesAtivas);
-  set('k-lmkt', DADOS.leadsMarketing.toLocaleString('pt-BR'));
-  set('k-lcrm', DADOS.leadsCRM.toLocaleString('pt-BR'));
-  set('k-ticket', f2(DADOS.ticketMedio));
+  set('k-receita', f0(d.receitaFechada)); set('k-receita-pc', pct1(pVGV)+' da meta');
+  set('k-pipe', f0(d.pipelineAtivo)); set('k-neg2', d.negociacoesAtivas+' negócios');
+  set('k-neg', d.negociacoesAtivas);
+  set('k-lmkt', nf(d.leadsMarketing)); set('k-lcrm', nf(d.leadsCRM)); set('k-ticket', f2(d.ticketMedio));
+  set('k-estoque', nf(d.estoque.total)+' un');
+  set('k-estoque-sub', nf(d.estoque.disponivelQtd)+' disp · '+fM(d.estoque.disponivelValor));
 
-  set('m-vgv-real', f0(DADOS.realizadoVGV)); set('m-vgv-meta', f0(DADOS.metaVGV));
-  document.getElementById('m-vgv-bar').style.width = Math.min(pVGV,100)+'%';
-  set('m-vgv-pc', pct1(pVGV)+' atingido');
-  set('m-ent-real', f0(DADOS.realizadoEntrada)); set('m-ent-meta', f0(DADOS.metaEntrada));
-  document.getElementById('m-ent-bar').style.width = Math.min(pENT,100)+'%';
-  set('m-ent-pc', pct1(pENT)+' atingido');
+  set('prev-v', fM(d.previsaoPonderada)); set('prev-pc', f0(d.previsaoPonderada));
+  document.getElementById('prev-ring').style.setProperty('--p', Math.min(cobertura,100).toFixed(0)+'%');
+  set('prev-sub', 'do pipeline ponderado · anel mostra '+Math.round(cobertura)+'% da meta (completa em 100%)');
 
-  set('pp-prev', f0(DADOS.previsaoPonderada));
-  set('pp-pct', Math.round(pc(DADOS.previsaoPonderada, DADOS.metaVGV))+'%');
-  set('pp-meta', f0(DADOS.metaVGV)); set('pp-aberto', f0(DADOS.pipelineAtivo));
+  set('m-vgv-real', f0(d.realizadoVGV)); set('m-vgv-meta', f0(d.metaVGV));
+  document.getElementById('m-vgv-bar').style.width = Math.min(pVGV,100)+'%'; set('m-vgv-pc', pct1(pVGV)+' atingido');
+  set('m-ent-real', f0(d.realizadoEntrada)); set('m-ent-meta', f0(d.metaEntrada));
+  document.getElementById('m-ent-bar').style.width = Math.min(pENT,100)+'%'; set('m-ent-pc', pct1(pENT)+' atingido');
 
-  set('p-vgv', f0(DADOS.realizadoVGV));
-  document.getElementById('p-vgv-bar').style.width = Math.min(pVGV,100)+'%';
-  set('p-vgv-f', Math.round(pVGV)+'% da meta de '+f0(DADOS.metaVGV));
-  set('p-ent', f0(DADOS.realizadoEntrada));
-  document.getElementById('p-ent-bar').style.width = Math.min(pENT,100)+'%';
-  document.getElementById('p-ent-bar').style.background = DADOS.realizadoEntrada>0 ? 'var(--amber)' : 'var(--red)';
-  document.getElementById('p-ent').style.color = DADOS.realizadoEntrada>0 ? 'var(--amber)' : 'var(--red)';
-  set('p-ent-f', Math.round(pENT)+'% da meta de '+f0(DADOS.metaEntrada));
+  set('p-vgv', f0(d.realizadoVGV));
+  document.getElementById('p-vgv-bar').style.cssText = 'width:'+Math.min(pVGV,100)+'%;background:var(--red)';
+  set('p-vgv-f', Math.round(pVGV)+'% da meta de '+f0(d.metaVGV));
+  set('p-ent', f0(d.realizadoEntrada));
+  const okEnt = d.realizadoEntrada>0;
+  document.getElementById('p-ent-bar').style.cssText = 'width:'+Math.min(pENT,100)+'%;background:'+(okEnt?'var(--amber)':'var(--red)');
+  document.getElementById('p-ent').style.color = okEnt?'var(--amber)':'var(--red)';
+  set('p-ent-f', Math.round(pENT)+'% da meta de '+f0(d.metaEntrada));
 
-  const tb = document.getElementById('tb-corretores');
-  tb.innerHTML = DADOS.corretores.map(c=>{
-    const p = pc(c.vgv,c.meta);
-    const col = p>=50?'var(--green)':p>0?'var(--amber)':'var(--ink3)';
-    return `<tr>
-      <td>${c.nome}<div class="sub">${c.cargo}</div></td>
-      <td class="r num">${f0(c.vgv)}</td>
-      <td class="r num">${f0(c.meta)}</td>
-      <td class="r num" style="color:${col};font-weight:600">${Math.round(p)}%
-        <div class="tbar" style="margin-top:3px"><i style="width:${Math.min(p,100)}%;background:${col}"></i></div></td>
-      <td class="r num">${f0(c.previsao)}</td></tr>`;
-  }).join('');
+  set('r-crm', nf(d.leadsCRM)); set('r-mkt', nf(d.leadsMarketing)); set('r-conv', nf(d.conversasTotal));
+
+  set('crm-win', pct1(d.winRate)); set('crm-win-sub', d.ganhos+' ganhos / '+d.perdidos+' perdidos');
+  set('crm-ciclo', d.cicloDias+' dias');
+  set('crm-aberto', d.negociacoesAtivas); set('crm-aberto-sub', f0(d.pipelineAtivo)+' na esteira');
+  document.getElementById('crm-etapas').innerHTML = (d.etapas||[]).map(e=>
+    `<tr><td>${e.nome}</td><td class="r">${e.peso}%</td><td class="r num">${e.qtd}</td><td class="r num">${f0(e.bruto)}</td><td class="r num" style="font-weight:600">${f0(e.pond)}</td></tr>`).join('');
+  document.getElementById('crm-corretores').innerHTML = (d.corretores||[]).map(c=>{
+    const p = c.meta? c.vgv/c.meta*100 : 0; const col = p>=50?'var(--green)':p>0?'var(--amber)':'var(--ink3)';
+    return `<tr><td>${c.nome}<div class="sub">${c.cargo}</div></td><td class="r num">${f0(c.vgv)}</td><td class="r num">${f0(c.meta)}</td>
+      <td class="r num" style="color:${col};font-weight:600">${Math.round(p)}%<div class="tbar" style="margin-top:3px"><i style="width:${Math.min(p,100)}%;background:${col}"></i></div></td>
+      <td class="r num">${f0(c.previsao)}</td></tr>`;}).join('');
+  document.getElementById('crm-motivos').innerHTML = (d.motivos&&d.motivos.length)? d.motivos.map(m=>
+    `<tr><td>${m.motivo}</td><td class="r num">${nf(m.qtd)}</td><td class="r num">${m.pct}%</td><td class="r num">${f2(m.valor)}</td></tr>`).join('')
+    : '<tr><td colspan="4" style="color:var(--ink3)">Sem motivos preenchidos no RD.</td></tr>';
+
+  set('mkt-leads', nf(d.leadsMarketing));
+  const camps = d.campanhas||[];
+  document.getElementById('mkt-campanhas').innerHTML = camps.length? camps.map(c=>
+    `<tr><td>${c.nome}</td><td class="r num">${nf(c.total)}</td></tr>`).join('')
+    : '<tr><td colspan="2" style="color:var(--ink3)">Conecte buscar_marketing() para listar as campanhas.</td></tr>';
+  set('mkt-note', camps.length? camps.length+' campanhas ativas.' : 'Os dados de campanhas vêm do dashboard_api.py (buscar_marketing).');
+
+  set('cv-total', nf(d.conversasTotal));
+  const at = d.atendentes||[];
+  set('cv-atend', at.length);
+  document.getElementById('cv-atendentes').innerHTML = at.length? at.map(a=>
+    `<tr><td>${a.nome}</td><td>${a.email||'—'}</td></tr>`).join('')
+    : '<tr><td colspan="2" style="color:var(--ink3)">Conecte buscar_conversas_employees() para listar os atendentes.</td></tr>';
+  set('cv-note', at.length? '' : 'A lista de atendentes vem do dashboard_api.py (buscar_conversas_employees).');
+
+  const es = d.estoque;
+  set('es-total', nf(es.total)+' un'); set('es-disp', nf(es.disponivelQtd)+' un'); set('es-valor', f2(es.disponivelValor));
+  document.getElementById('es-tabela').innerHTML = (es.porEmpreendimento||[]).map(e=>
+    `<tr><td>${e.nome}</td><td class="r num">${e.total}</td><td class="r num">${e.disp}</td><td class="r num">${e.valor?f2(e.valor):'—'}</td></tr>`).join('')
+    + `<tr style="font-weight:700"><td>TOTAL</td><td class="r num">${nf(es.total)}</td><td class="r num">${nf(es.disponivelQtd)}</td><td class="r num">${f2(es.disponivelValor)}</td></tr>`;
 }
 render();
 </script>
