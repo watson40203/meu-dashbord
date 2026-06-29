@@ -190,8 +190,8 @@
     <div class="lbl">Previsão, metas &amp; funil</div>
     <div class="row mid">
       <div class="prev-card">
-        <div class="ring" id="prev-ring"><div class="ring-in"><div class="v num" id="prev-v"></div><div class="l">previsão</div></div></div>
-        <div class="info"><div class="cap">Previsão de fechamento</div><div class="pc num" id="prev-pc"></div><div class="sub" id="prev-sub"></div></div>
+        <div class="ring" id="prev-ring"><div class="ring-in"><div class="v num" id="prev-v"></div><div class="l">prev. real</div></div></div>
+        <div class="info"><div class="cap">Previsão realista (mês)</div><div class="pc num" id="prev-pc"></div><div class="sub" id="prev-sub"></div></div>
       </div>
       <div class="sect-card"><h2>Metas do período</h2>
         <div class="metas2">
@@ -211,7 +211,7 @@
 
     <div class="lbl">Pipeline ponderado &amp; perdas</div>
     <div class="row g2">
-      <div class="sect-card"><h2>Pipeline ponderado por etapa</h2><div class="chart-box"><canvas id="pizzaEtapas" role="img" aria-label="Distribuição do valor ponderado por etapa do pipeline."></canvas></div><div class="legend" id="leg-etapas"></div></div>
+      <div class="sect-card"><h2>Pipeline ponderado por etapa <span style="text-transform:none;color:var(--ink3);font-weight:400">(potencial)</span></h2><div class="chart-box"><canvas id="pizzaEtapas" role="img" aria-label="Distribuição do valor ponderado por etapa do pipeline."></canvas></div><div class="legend" id="leg-etapas"></div><p class="note">Ponderado pelos pesos das etapas — é o <b>potencial</b>, não a previsão. A previsão realista (conversão atual) está no card acima.</p></div>
       <div class="sect-card"><h2>Motivos de perda</h2><div class="chart-box"><canvas id="pizzaMotivos" role="img" aria-label="Distribuição dos motivos de perda."></canvas></div><div class="legend" id="leg-motivos"></div></div>
     </div>
 
@@ -337,10 +337,12 @@ function render(){
   set('pv-vendas', (pv.vendasMes||0).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'/mês');
   set('pv-receita', f0(pv.receitaMes||0)); set('pv-receita-sub', (pv.vendasMes||0)+' × '+f0(d.ticketMedio));
 
-  // Previsão + anel
-  set('prev-v', fM(d.previsaoPonderada)); set('prev-pc', f0(d.previsaoPonderada));
-  document.getElementById('prev-ring').style.setProperty('--p', Math.min(cobertura,100).toFixed(0)+'%');
-  set('prev-sub', 'do pipeline ponderado · anel = '+Math.round(cobertura)+'% da meta (completa em 100%)');
+  // Previsão REALISTA (consistente com a previsibilidade) + anel vs meta
+  const realista = d.previsaoRealista || ((d.previsibilidade||{}).receitaMes) || 0;
+  const covReal = d.metaVGV? realista/d.metaVGV*100 : 0;
+  set('prev-v', fM(realista)); set('prev-pc', f0(realista));
+  document.getElementById('prev-ring').style.setProperty('--p', Math.min(covReal,100).toFixed(0)+'%');
+  set('prev-sub', 'baseada na conversão real · anel = '+Math.round(covReal)+'% da meta · potencial em aberto: '+fM(d.pipelineAtivo)+' (ponderado '+fM(d.previsaoPonderada)+')');
 
   // Metas (única — pacing foi unificado aqui)
   set('m-vgv-real', f0(d.realizadoVGV)); set('m-vgv-meta', f0(d.metaVGV));
