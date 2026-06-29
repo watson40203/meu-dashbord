@@ -319,8 +319,29 @@ def barra(pct, cor=None):
 # Injeta os dados ao vivo no template index_template.html.
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Estoque (apurado das planilhas de vendas — número de unidades e valor das disponíveis).
+# Atualize quando lançar/vender unidades. Valor = soma das unidades DISPONÍVEIS.
+ESTOQUE = {
+    "total": 200,
+    "disponivelQtd": 44,
+    "disponivelValor": 46976275.59,
+    "porEmpreendimento": [
+        {"nome": "Laguna Sky Garden",    "total": 75, "disp": 15, "valor": 26099057.15},
+        {"nome": "Sintropia Sky Garden", "total": 97, "disp": 29, "valor": 20877218.44},
+        {"nome": "Residencial Girassol", "total": 20, "disp": 0,  "valor": 0.0},
+        {"nome": "Residencial Lótus",    "total": 8,  "disp": 0,  "valor": 0.0},
+    ],
+}
+
+# Marketing/Conversas — fixos por enquanto. Para deixar ao vivo, passe os
+# resultados de buscar_marketing()/buscar_conversas() do dashboard_api.py.
+CONVERSAS_TOTAL = 6681
+
+
 def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
-                     abertos, ganhos, n_ganho, corretores):
+                     abertos, ganhos, perdidos, n_ganho, n_perda, win_rate,
+                     ciclo_medio, corretores, etapas_ord, motivos_ord,
+                     campanhas=None, atendentes=None):
     """Monta o DADOS e grava o index.html a partir do index_template.html."""
     import json
 
@@ -332,38 +353,54 @@ def gerar_index_kpis(hoje, vgv_mes, ent_mes, pipe_total, pipe_pond,
     total_ganho = sum(d.get("value", 0) for d in ganhos)
     ticket = (total_ganho / n_ganho) if n_ganho else 0.0
 
-    # Corretores no formato do template (ordenado por VGV no mês)
+    # Corretores (ordenado por VGV no mês)
     corretores_fmt = []
     for kw, m in corretores:
         corretores_fmt.append({
-            "nome": m.get("nome", ""),
-            "cargo": m.get("papel", ""),
-            "vgv": round(m.get("vgv_mes", 0), 2),
-            "meta": round(META_VGV_PESSOA, 2),
+            "nome": m.get("nome", ""), "cargo": m.get("papel", ""),
+            "vgv": round(m.get("vgv_mes", 0), 2), "meta": round(META_VGV_PESSOA, 2),
             "previsao": round(m.get("pipe_pond", 0), 2),
         })
     corretores_fmt.sort(key=lambda c: c["vgv"], reverse=True)
 
+    # Etapas do pipeline ponderado
+    etapas_fmt = [{
+        "nome": etapa, "peso": round(v["peso"]), "qtd": v["n"],
+        "bruto": round(v["valor"], 2), "pond": round(v["pond"], 2),
+    } for etapa, v in etapas_ord]
+
+    # Motivos de perda
+    tot_perda = sum(v["n"] for _, v in motivos_ord) or 1
+    motivos_fmt = [{
+        "motivo": motivo, "qtd": v["n"],
+        "pct": round(v["n"] / tot_perda * 100), "valor": round(v["valor"], 2),
+    } for motivo, v in motivos_ord[:12]]
+
     carimbo = hoje.strftime("%d/%m/%Y às %H:%M")
     dados = {
-        "buscadoEm": carimbo,
-        "atualizadoEm": carimbo,
+        "buscadoEm": carimbo, "atualizadoEm": carimbo,
         "dataFiltro": hoje.strftime("%d/%m/%Y"),
 
-        "metaVGV": round(META_MACRO_VGV, 2),
-        "metaEntrada": round(META_MACRO_ENT, 2),
-        "realizadoVGV": round(vgv_mes, 2),
-        "realizadoEntrada": round(ent_mes, 2),
+        "metaVGV": round(META_MACRO_VGV, 2), "metaEntrada": round(META_MACRO_ENT, 2),
+        "realizadoVGV": round(vgv_mes, 2), "realizadoEntrada": round(ent_mes, 2),
 
         "receitaFechada": round(vgv_mes, 2),
         "pipelineAtivo": round(pipe_total, 2),
         "previsaoPonderada": round(pipe_pond, 2),
         "negociacoesAtivas": len(abertos),
-        "leadsMarketing": LEADS_MARKETING,
-        "leadsCRM": LEADS_CRM,
+        "leadsMarketing": LEADS_MARKETING, "leadsCRM": LEADS_CRM,
+        "conversasTotal": CONVERSAS_TOTAL,
         "ticketMedio": round(ticket, 2),
 
+        "winRate": round(win_rate, 2), "ganhos": n_ganho, "perdidos": n_perda,
+        "cicloDias": ciclo_medio,
+
+        "estoque": ESTOQUE,
         "corretores": corretores_fmt,
+        "etapas": etapas_fmt,
+        "motivos": motivos_fmt,
+        "campanhas": campanhas or [],
+        "atendentes": atendentes or [],
     }
 
     template = open(KPIS_TEMPLATE, encoding="utf-8").read()
@@ -681,8 +718,18 @@ def gerar_dashboard(deals, cfg):
         pipe_pond=pipe_pond,
         abertos=abertos,
         ganhos=ganhos,
+        perdidos=perdidos,
         n_ganho=n_ganho,
+        n_perda=n_perda,
+        win_rate=win_rate,
+        ciclo_medio=ciclo_medio,
         corretores=corretores,
+        etapas_ord=etapas_ord,
+        motivos_ord=motivos_ord,
+        # Para deixar marketing/conversas ao vivo, passe aqui os resultados
+        # de buscar_marketing()["campanhas"] e buscar_conversas_employees():
+        campanhas=None,
+        atendentes=None,
     )
 
     return html
