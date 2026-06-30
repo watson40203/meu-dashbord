@@ -1,12 +1,14 @@
 {
-  "ciclo_venda_dias": 60,
+  "ciclo_venda_dias": 90,
   "dias_parado": 14,
   "realizado_entrada": {
     "2026-06": 50000
   },
   "transicao": {
     "mes": "2026-06",
-    "negocios_que_contam": ["Leonardo Cescato Rosner"]
+    "negocios_que_contam": [
+      "Leonardo Cescato Rosner"
+    ]
   },
   "pesos": {
     "lead": 5,

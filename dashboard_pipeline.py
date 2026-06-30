@@ -51,7 +51,8 @@ LEADS_CRM         = 6300
 KPIS_TEMPLATE     = "index_template.html"
 KPIS_OUTPUT       = "index.html"
 
-CICLO_VENDA_PADRAO = 60         # dias (usado enquanto não há negócios novos suficientes)
+CICLO_VENDA_PADRAO = 90         # dias — ciclo real informado (ajuste p/ sua média real)
+CICLO_MIN_DIAS     = 7          # ignora ciclos abaixo disso (artefato de recadastro)
 
 # Ordem do funil (palavras-chave). "Reunião realizada" conta a partir de ETAPA_REUNIAO.
 FUNIL_ORDEM   = ["lead", "contato", "agendamento", "atendimento", "proposta", "negocia", "fecha", "ganho"]
@@ -504,8 +505,11 @@ def gerar_dashboard(deals, cfg):
             try:
                 c = datetime.strptime(d["created_at"], "%Y-%m-%d").date()
                 f = datetime.strptime(d["closed_at"], "%Y-%m-%d").date()
-                if (f - c).days >= 0:
-                    ciclos.append((f - c).days)
+                dias = (f - c).days
+                # ignora ciclos absurdamente curtos: criação e fechamento quase
+                # no mesmo dia indicam recadastro, não venda real.
+                if dias >= CICLO_MIN_DIAS:
+                    ciclos.append(dias)
             except Exception:
                 pass
     if len(ciclos) >= 5:
